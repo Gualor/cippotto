@@ -1,4 +1,4 @@
-TARGET := chippotto
+TARGET := cippotto
 
 CC := gcc
 MKDIR := mkdir -p
@@ -13,7 +13,7 @@ INCS := $(addprefix -I, $(shell find $(INC_DIR) -type d))
 OBJS := $(patsubst $(SRC_DIR)/%.c,$(BIN_DIR)/%.o,$(SRCS))
 DEPS := $(patsubst %.o,%.d,$(OBJS))
 
-CFLAGS := -g $(INCS) -MMD -MP -Wall -Wextra -Wdouble-promotion
+CFLAGS := $(INCS) -g -MMD -MP -Wall -Wextra -Wdouble-promotion
 LDFLAGS := 
 
 .PHONY: all
