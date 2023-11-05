@@ -23,5 +23,5 @@ int main(int argc, char **argv)
         err |= chip8_update();
     }
 
-    return 0;
+    return (err == CHIP8_EXIT);
 }
