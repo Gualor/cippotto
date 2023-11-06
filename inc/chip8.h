@@ -16,6 +16,5 @@ typedef enum
 chip8_err_t chip8_init(char *rom);
 chip8_err_t chip8_fetch(uint16_t *opcode);
 chip8_err_t chip8_execute(uint16_t opcode);
-chip8_err_t chip8_update(void);
 
 #endif /* __CHIP8__ */

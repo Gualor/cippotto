@@ -81,6 +81,7 @@ chip8_err_t chip8_init(char *rom)
 chip8_err_t chip8_fetch(uint16_t *opcode)
 {
     *opcode = ((uint16_t)ram[PC] << 8) | ram[PC + 1];
+    PC += sizeof(uint16_t);
     return CHIP8_OK;
 }
 
@@ -95,7 +96,8 @@ chip8_err_t chip8_execute(uint16_t opcode)
     uint16_t X = _NNN >> 8;
     uint16_t Y = __NN >> 4;
 
-    printf("0x%04X\t", PC);
+    uint16_t addr = PC - sizeof(uint16_t);
+    printf("0x%04X\t0x%04X\t", addr, opcode);
 
     if (O___ == 0x0000)
     {
@@ -128,6 +130,7 @@ chip8_err_t chip8_execute(uint16_t opcode)
         if (SP == STACK_SIZE - 1)
             return CHIP8_STACK_OVERFLOW;
         stack[++SP] = PC;
+        PC = _NNN;
     }
     else if (O___ == 0x3000)
     {
@@ -183,31 +186,31 @@ chip8_err_t chip8_execute(uint16_t opcode)
         {
             printf("ADD, V%X, V%X\t[Set VF = carry]\n", X, Y);
             uint16_t res = V[X] + V[Y];
+            V[0xF] = res >> 8;
             V[X] = (uint8_t)res;
-            V[15] = res >> 8;
         }
         else if (___N == 0x5)
         {
             printf("SUB V%X, V%X\t[Set VF = NOT borrow]\n", X, Y);
-            V[15] = (V[X] > V[Y]) ? 1 : 0;
+            V[0xF] = (V[X] > V[Y]) ? 1 : 0;
             V[X] -= V[Y];
         }
         else if (___N == 0x6)
         {
             printf("SHR V%X, V%X\t[set VF = LSB]\n", X, Y);
-            V[15] = (V[X] & 0x1) ? 1 : 0;
+            V[0xF] = (V[X] & 0x1) ? 1 : 0;
             V[X] >>= V[Y];
         }
         else if (___N == 0x7)
         {
             printf("SUBN V%X, V%X\t[set VF = NOT borrow]\n", X, Y);
-            V[15] = (V[Y] > V[X]) ? 1 : 0;
+            V[0xF] = (V[Y] > V[X]) ? 1 : 0;
             V[X] = V[Y] - V[X];
         }
         else if (___N == 0xE)
         {
             printf("SHL V%X, V%X\t[set VF = MSB]\n", X, Y);
-            V[15] = (V[X] & 0x64) ? 1 : 0;
+            V[0xF] = (V[X] & 0x64) ? 1 : 0;
             V[X] <<= V[Y];
         }
         else
@@ -362,17 +365,4 @@ chip8_err_t chip8_execute(uint16_t opcode)
         printf("Unknown: %04X\n", opcode);
 
     return err;
-}
-
-/**
- * @brief CHIP8 update program counter
- *
- * @return chip8_err_t Error code
- */
-chip8_err_t chip8_update(void)
-{
-    PC += sizeof(uint16_t);
-    if (PC > RAM_ADDR_END)
-        return CHIP8_INVALID_ADDR;
-    return CHIP8_OK;
 }
