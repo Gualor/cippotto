@@ -15,13 +15,11 @@ int main(int argc, char **argv)
     chip8_init(argv[1]);
 
     chip8_err_t err = CHIP8_OK;
-    int i = 0;
-    while (i < 100)
+    while (err == CHIP8_OK)
     {
         uint16_t opcode;
         err = chip8_fetch(&opcode);
         err |= chip8_execute(opcode);
-        i++;
     }
 
     return (err == CHIP8_EXIT);
