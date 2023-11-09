@@ -1,3 +1,5 @@
+/* Includes ----------------------------------------------------------------- */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -5,7 +7,31 @@
 
 #include "chip8.h"
 
-// CHIP8 instruction set
+/* Definitions -------------------------------------------------------------- */
+
+#define REGISTER_NUM 16
+
+#define STACK_SIZE 16
+
+#define RAM_ADDR_START 0x000
+#define RAM_ADDR_PROG 0x200
+#define RAM_ADDR_END 0xFFF
+#define RAM_SIZE 4096
+
+#define FONT_CHARS 16
+#define FONT_SIZE 5
+#define FONT_ADDR_START (RAM_ADDR_START)
+#define FONT_ADDR_END (FONT_ADDR_START + (FONT_CHARS * FONT_SIZE))
+
+#define COLOR_BLACK 0
+#define COLOR_WHITE 1
+
+#define SPRITE_WIDTH 8
+#define SPRITE_HEIGHT_MIN 1
+#define SPRITE_HEIGHT_MAX 15
+
+/* Function prototypes ------------------------------------------------------ */
+
 static chip8_err_t __CLS(void);
 static chip8_err_t __RET(void);
 static chip8_err_t __SYS(void);
@@ -42,8 +68,9 @@ static chip8_err_t __LD_B_VX(void);
 static chip8_err_t __LD_I_VX(void);
 static chip8_err_t __LD_VX_I(void);
 
+/* Global variables --------------------------------------------------------- */
+
 // General purpose registers
-#define REGISTER_NUM 16
 static uint8_t V[REGISTER_NUM];
 
 // Delay timer register
@@ -62,16 +89,27 @@ static uint16_t PC;
 static uint16_t SP;
 
 // Stack to store return addresses of subroutine calls
-#define STACK_SIZE 16
 static uint16_t stack[STACK_SIZE];
 
 // RAM memory map
-#define RAM_ADDR_START 0x000
-#define RAM_ADDR_PROG 0x200
-#define RAM_ADDR_END 0xFFF
-#define RAM_SIZE 4096
-static uint8_t ram[RAM_SIZE];
-static uint16_t prog_bytes;
+static uint8_t ram[RAM_SIZE] = {
+    0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
+    0x20, 0x60, 0x20, 0x20, 0x70, // 1
+    0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
+    0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
+    0x90, 0x90, 0xF0, 0x10, 0x10, // 4
+    0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
+    0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
+    0xF0, 0x10, 0x20, 0x40, 0x40, // 7
+    0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
+    0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
+    0xF0, 0x90, 0xF0, 0x90, 0x90, // A
+    0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
+    0xF0, 0x80, 0x80, 0x80, 0xF0, // C
+    0xE0, 0x90, 0x90, 0x90, 0xE0, // D
+    0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
+    0xF0, 0x80, 0xF0, 0x80, 0x80, // F
+};
 
 // Opcode parsing
 static uint16_t O___;
@@ -81,22 +119,13 @@ static uint16_t ___N;
 static uint16_t X;
 static uint16_t Y;
 
-// Graphics
-#define COLOR_BLACK 0
-#define COLOR_WHITE 1
+// Display buffer
+uint8_t chip8_display[DISPLAY_WIDTH][DISPLAY_HEIGHT];
 
-#define SPRITE_WIDTH 8
-#define SPRITE_HEIGHT_MIN 1
-#define SPRITE_HEIGHT_MAX 15
+// Keyboard keys
+uint8_t chip8_keys[KEYS_NUM];
 
-#define DISPLAY_WIDTH 64
-#define DISPLAY_HEIGHT 32
-
-#define BUFFER_WIDTH (DISPLAY_WIDTH / SPRITE_WIDTH)
-#define BUFFER_HEIGHT (DISPLAY_HEIGHT)
-#define BUFFER_LENGTH (BUFFER_WIDTH * BUFFER_HEIGHT)
-
-static uint8_t display_buf[BUFFER_WIDTH][BUFFER_HEIGHT];
+/* Function definitions ----------------------------------------------------- */
 
 /**
  * @brief CHIP8 interpreter initialization
@@ -116,15 +145,16 @@ chip8_err_t chip8_init(char *rom)
     }
 
     fseek(file, 0, SEEK_END);
-    prog_bytes = ftell(file);
+    uint16_t prog_bytes = ftell(file);
     rewind(file);
 
     fread(&ram[RAM_ADDR_PROG], sizeof(uint8_t), prog_bytes, file);
     fclose(file);
 
-    memset(V, 0x0, sizeof(uint8_t) * REGISTER_NUM);
-    memset(stack, 0x0, sizeof(uint16_t) * STACK_SIZE);
-    memset(display_buf, COLOR_BLACK, sizeof(uint8_t) * BUFFER_LENGTH);
+    memset(V, 0x0, sizeof(V));
+    memset(stack, 0x0, sizeof(stack));
+    memset(chip8_display, 0x0, sizeof(chip8_display));
+    memset(chip8_keys, 0x0, sizeof(chip8_keys));
 
     I = 0;
     DT = 0;
@@ -361,7 +391,7 @@ chip8_err_t chip8_decode(chip8_cmd_t *cmd, uint16_t opcode)
 chip8_err_t __CLS(void)
 {
     printf("CLS\n");
-    memset(display_buf, COLOR_BLACK, sizeof(uint8_t) * BUFFER_LENGTH);
+    memset(chip8_display, COLOR_BLACK, sizeof(chip8_display));
     return CHIP8_OK;
 }
 
@@ -377,8 +407,10 @@ chip8_err_t __CLS(void)
 chip8_err_t __RET(void)
 {
     printf("RET\n");
+
     if (SP == 0)
         return CHIP8_EXIT;
+
     PC = stack[SP--];
     return CHIP8_OK;
 }
@@ -409,9 +441,12 @@ chip8_err_t __SYS(void)
 chip8_err_t __JP_NNN(void)
 {
     printf("JP 0x%04X\n", _NNN);
+
     if (_NNN > RAM_ADDR_END)
         return CHIP8_INVALID_ADDR;
+
     PC = _NNN;
+
     return CHIP8_OK;
 }
 
@@ -427,10 +462,13 @@ chip8_err_t __JP_NNN(void)
 chip8_err_t __CALL_NNN(void)
 {
     printf("CALL 0x%04X\n", _NNN);
+
     if (SP > STACK_SIZE - 1)
         return CHIP8_STACK_OVERFLOW;
+
     stack[++SP] = PC;
     PC = _NNN;
+
     return CHIP8_OK;
 }
 
@@ -752,7 +790,32 @@ chip8_err_t __RND_VX_NN(void)
 chip8_err_t __DRW_VX_VY_N(void)
 {
     printf("DRW V%X, V%X, %d\t[set VF = collision]\n", X, Y, ___N);
-    return CHIP8_NOT_IMPLEMENTED;
+
+    uint8_t start_x = V[X] % DISPLAY_WIDTH;
+    uint8_t start_y = V[Y] % DISPLAY_HEIGHT;
+    V[0xF] = 0;
+
+    for (uint8_t h = 0; h < ___N; ++h)
+    {
+        uint8_t y = start_y + h;
+        if (y >= DISPLAY_HEIGHT)
+            break;
+
+        for (uint8_t w = 0; w < SPRITE_WIDTH; ++w)
+        {
+            uint8_t x = start_x + w;
+            if (x >= DISPLAY_WIDTH)
+                continue;
+
+            uint8_t old_val = chip8_display[x][y];
+            uint8_t new_val = old_val ^ (ram[I + h] & (1 << (7 - w)));
+
+            chip8_display[x][y] = new_val;
+            V[0xF] |= ~new_val & old_val;
+        }
+    }
+
+    return CHIP8_OK;
 }
 
 /**
@@ -767,7 +830,14 @@ chip8_err_t __DRW_VX_VY_N(void)
 chip8_err_t __SKP_VX(void)
 {
     printf("SKP V%X\n", X);
-    return CHIP8_NOT_IMPLEMENTED;
+
+    if (V[X] >= KEYS_NUM)
+        return CHIP8_INVALID_KEY;
+
+    if (chip8_keys[V[X]])
+        PC += sizeof(uint16_t);
+
+    return CHIP8_OK;
 }
 
 /**
@@ -782,7 +852,14 @@ chip8_err_t __SKP_VX(void)
 chip8_err_t __SKNP_VX(void)
 {
     printf("SKNP V%X\n", X);
-    return CHIP8_NOT_IMPLEMENTED;
+
+    if (V[X] >= KEYS_NUM)
+        return CHIP8_INVALID_KEY;
+
+    if (!chip8_keys[V[X]])
+        PC += sizeof(uint16_t);
+
+    return CHIP8_OK;
 }
 
 /**
@@ -872,7 +949,13 @@ chip8_err_t __ADD_I_VX(void)
 chip8_err_t __LD_F_VX(void)
 {
     printf("LD F, V%X\n", X);
-    return CHIP8_NOT_IMPLEMENTED;
+
+    uint8_t addr = (FONT_SIZE * V[X]) + FONT_ADDR_START;
+    if (addr > FONT_ADDR_END)
+        return CHIP8_INVALID_ADDR;
+    I = addr;
+
+    return CHIP8_OK;
 }
 
 /**
@@ -888,7 +971,15 @@ chip8_err_t __LD_F_VX(void)
 chip8_err_t __LD_B_VX(void)
 {
     printf("LD B, V%X\n", X);
-    return CHIP8_NOT_IMPLEMENTED;
+
+    uint8_t val = V[X];
+    for (uint8_t i = 0; i < 3; ++i)
+    {
+        ram[I + 2 - i] = val % 10;
+        val /= 10;
+    }
+
+    return CHIP8_OK;
 }
 
 /**
@@ -903,7 +994,13 @@ chip8_err_t __LD_B_VX(void)
 chip8_err_t __LD_I_VX(void)
 {
     printf("LD [I], V%X\n", X);
-    return CHIP8_NOT_IMPLEMENTED;
+
+    /** NOTE: Increment I instead of index in order to run COSMAC VIP games */
+    uint8_t index = I;
+    for (uint8_t i = 0; i <= X; ++i)
+        ram[index++] = V[i];
+
+    return CHIP8_OK;
 }
 
 /**
@@ -918,5 +1015,13 @@ chip8_err_t __LD_I_VX(void)
 chip8_err_t __LD_VX_I(void)
 {
     printf("LD V%X, [I]\n", X);
-    return CHIP8_NOT_IMPLEMENTED;
+
+    /** NOTE: Increment I instead of index in order to run COSMAC VIP games */
+    uint8_t index = I;
+    for (uint8_t i = 0; i <= X; ++i)
+        V[i] = ram[index++];
+
+    return CHIP8_OK;
 }
+
+/* -------------------------------------------------------------------------- */

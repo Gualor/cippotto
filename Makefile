@@ -14,7 +14,7 @@ OBJS := $(patsubst $(SRC_DIR)/%.c,$(BIN_DIR)/%.o,$(SRCS))
 DEPS := $(patsubst %.o,%.d,$(OBJS))
 
 CFLAGS := $(INCS) -g -MMD -MP -Wall -Wextra -Wdouble-promotion
-LDFLAGS := 
+LDFLAGS := -lraylib -lopengl32 -lgdi32 -lwinmm
 
 .PHONY: all
 all: $(BIN_DIR)/$(TARGET)
