@@ -14,12 +14,22 @@ int main(int argc, char **argv)
 
     chip8_init(argv[1]);
 
+    uint16_t opcode;
+    chip8_cmd_t chip8_cmd;
     chip8_err_t err = CHIP8_OK;
-    while (err == CHIP8_OK)
+    for (;;)
     {
-        uint16_t opcode;
         err = chip8_fetch(&opcode);
-        err |= chip8_execute(opcode);
+        if (err)
+            break;
+
+        err = chip8_decode(&chip8_cmd, opcode);
+        if (err)
+            break;
+
+        err = chip8_cmd();
+        if (err)
+            break;
     }
 
     return (err == CHIP8_EXIT);
