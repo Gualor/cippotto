@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-
 #include <raylib.h>
 
 #include "chip8.h"
@@ -17,81 +16,74 @@
 
 /* Function definitions ----------------------------------------------------- */
 
-void draw_pixel(uint8_t x, uint8_t y, uint8_t color)
+void draw_display(uint8_t *display)
 {
-    DrawRectangle(
-        x * DISPLAY_ZOOM,
-        y * DISPLAY_ZOOM,
-        DISPLAY_ZOOM,
-        DISPLAY_ZOOM,
-        (color) ? WHITE : BLACK);
-}
-
-void draw_display(void)
-{
-    for (int x = 0; x < DISPLAY_WIDTH; ++x)
+    for (uint8_t x = 0; x < DISPLAY_WIDTH; ++x)
     {
-        for (int y = 0; y < DISPLAY_HEIGHT; ++y)
+        for (uint8_t y = 0; y < DISPLAY_HEIGHT; ++y)
         {
-            draw_pixel(x, y, chip8_display[x][y]);
+            DrawRectangle(
+                x * DISPLAY_ZOOM,
+                y * DISPLAY_ZOOM,
+                DISPLAY_ZOOM,
+                DISPLAY_ZOOM,
+                (display[x + y * DISPLAY_WIDTH]) ? WHITE : BLACK
+            );
         }
     }
 }
 
-void get_input(void)
+void get_input(uint8_t *keys)
 {
+    // Remap keys to mimic Chip8 keypad layout
     static const int raylib_keys[] = {
-        KEY_ZERO, KEY_ONE, KEY_TWO, KEY_THREE, KEY_FOUR, KEY_FIVE, KEY_SIX,
-        KEY_SEVEN, KEY_EIGHT, KEY_NINE, KEY_A, KEY_B, KEY_C, KEY_D, KEY_E, KEY_F
+        KEY_ONE, KEY_TWO, KEY_THREE, KEY_FOUR, // 1, 2, 3, C
+        KEY_Q,   KEY_W,   KEY_E,     KEY_R,    // 4, 5, 6, D
+        KEY_A,   KEY_S,   KEY_D,     KEY_F,    // 7, 8, 9, E
+        KEY_Z,   KEY_X,   KEY_C,     KEY_V,    // A, 0, B, F
     };
 
-    memset(chip8_keys, 0x0, sizeof(chip8_keys));
+    memset(keys, 0x0, sizeof(uint8_t) * KEYS_SIZE);
 
-    for (int i = 0; i < KEYS_NUM; ++i)
-        chip8_keys[i] = IsKeyDown(raylib_keys[i]);
+    for (uint8_t i = 0; i < KEYS_SIZE; ++i)
+        keys[i] = IsKeyDown(raylib_keys[i]);
 }
 
 int main(int argc, char **argv)
 {
     if (argc < 2)
     {
-        printf("Usage: %s <rom>\n", argv[0]);
+        fprintf(stdout, "Usage: %s <rom>\n", argv[0]);
+        exit(0);
+    }
+
+    FILE *rom = fopen(argv[1], "rb");
+    if (rom == NULL)
+    {
+        fprintf(stderr, "Error opening the ROM file: %s\n", argv[1]);
         exit(1);
     }
-    char *rom_path = argv[1];
 
-    InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "CHIP8 Emulator");
-    SetTargetFPS(60);
+    chip8_cfg_t chip8_cfg = {
+        .rom = rom,
+        .addr = CHIP8_RAM_PROGRAM
+    };
 
-    chip8_init(rom_path, CHIP8_RAM_PROGRAM);
+    chip8_t chip8;
+    chip8_init(&chip8, &chip8_cfg);
+    fclose(rom);
 
-    uint16_t opcode;
-    chip8_cmd_t chip8_cmd;
+    InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Chip8 Emulator");
+    SetTargetFPS(120);
+
     chip8_err_t err = CHIP8_OK;
-
-    while (!WindowShouldClose())
+    while (!WindowShouldClose() && !err)
     {
         BeginDrawing();
 
-        get_input();
-
-        err = chip8_fetch(&opcode);
-        if (err)
-            break;
-
-        err = chip8_decode(&chip8_cmd, opcode);
-        if (err)
-            break;
-
-        err = chip8_cmd();
-        if (err)
-            break;
-
-        err = chip8_tick();
-        if (err)
-            break;
-
-        draw_display();
+        get_input(chip8.keys);
+        err = chip8_run(&chip8);
+        draw_display(chip8.display);
 
         EndDrawing();
     }
