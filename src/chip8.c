@@ -9,46 +9,45 @@
 
 /* Function prototypes ------------------------------------------------------ */
 
-static chip8_err_t __CLS(chip8_t *ch8);
-static chip8_err_t __RET(chip8_t *ch8);
-static chip8_err_t __SYS(chip8_t *ch8, uint16_t nnn);
-static chip8_err_t __JP_NNN(chip8_t *ch8, uint16_t nnn);
-static chip8_err_t __CALL_NNN(chip8_t *ch8, uint16_t nnn);
-static chip8_err_t __SE_VX_NN(chip8_t *ch8, uint8_t x, uint8_t nn);
-static chip8_err_t __SNE_VX_NN(chip8_t *ch8, uint8_t x, uint8_t nn);
-static chip8_err_t __SE_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y);
-static chip8_err_t __LD_VX_NN(chip8_t *ch8, uint8_t x, uint8_t nn);
-static chip8_err_t __ADD_VX_NN(chip8_t *ch8, uint8_t x, uint8_t nn);
-static chip8_err_t __LD_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y);
-static chip8_err_t __OR_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y);
-static chip8_err_t __AND_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y);
-static chip8_err_t __XOR_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y);
-static chip8_err_t __ADD_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y);
-static chip8_err_t __SUB_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y);
-static chip8_err_t __SHR_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y);
-static chip8_err_t __SUBN_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y);
-static chip8_err_t __SHL_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y);
-static chip8_err_t __SNE_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y);
-static chip8_err_t __LD_I_NNN(chip8_t *ch8, uint16_t nnn);
-static chip8_err_t __JP_V0_NNN(chip8_t *ch8, uint16_t nnn);
-static chip8_err_t __RND_VX_NN(chip8_t *ch8, uint8_t x, uint8_t nn);
-static chip8_err_t __DRW_VX_VY_N(chip8_t *ch8, uint8_t x, uint8_t y, uint8_t n);
-static chip8_err_t __SKP_VX(chip8_t *ch8, uint8_t x);
-static chip8_err_t __SKNP_VX(chip8_t *ch8, uint8_t x);
-static chip8_err_t __LD_VX_DT(chip8_t *ch8, uint8_t x);
-static chip8_err_t __LD_VX_K(chip8_t *ch8, uint8_t x);
-static chip8_err_t __LD_DT_VX(chip8_t *ch8, uint8_t x);
-static chip8_err_t __LD_ST_VX(chip8_t *ch8, uint8_t x);
-static chip8_err_t __ADD_I_VX(chip8_t *ch8, uint8_t x);
-static chip8_err_t __LD_F_VX(chip8_t *ch8, uint8_t x);
-static chip8_err_t __LD_B_VX(chip8_t *ch8, uint8_t x);
-static chip8_err_t __LD_I_VX(chip8_t *ch8, uint8_t x);
-static chip8_err_t __LD_VX_I(chip8_t *ch8, uint8_t x);
+static inline chip8_err_t __CLS(chip8_t *ch8);
+static inline chip8_err_t __RET(chip8_t *ch8);
+static inline chip8_err_t __SYS(chip8_t *ch8, uint16_t nnn);
+static inline chip8_err_t __JP_NNN(chip8_t *ch8, uint16_t nnn);
+static inline chip8_err_t __CALL_NNN(chip8_t *ch8, uint16_t nnn);
+static inline chip8_err_t __SE_VX_NN(chip8_t *ch8, uint8_t x, uint8_t nn);
+static inline chip8_err_t __SNE_VX_NN(chip8_t *ch8, uint8_t x, uint8_t nn);
+static inline chip8_err_t __SE_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y);
+static inline chip8_err_t __LD_VX_NN(chip8_t *ch8, uint8_t x, uint8_t nn);
+static inline chip8_err_t __ADD_VX_NN(chip8_t *ch8, uint8_t x, uint8_t nn);
+static inline chip8_err_t __LD_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y);
+static inline chip8_err_t __OR_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y);
+static inline chip8_err_t __AND_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y);
+static inline chip8_err_t __XOR_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y);
+static inline chip8_err_t __ADD_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y);
+static inline chip8_err_t __SUB_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y);
+static inline chip8_err_t __SHR_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y);
+static inline chip8_err_t __SUBN_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y);
+static inline chip8_err_t __SHL_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y);
+static inline chip8_err_t __SNE_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y);
+static inline chip8_err_t __LD_I_NNN(chip8_t *ch8, uint16_t nnn);
+static inline chip8_err_t __JP_V0_NNN(chip8_t *ch8, uint16_t nnn);
+static inline chip8_err_t __RND_VX_NN(chip8_t *ch8, uint8_t x, uint8_t nn);
+static inline chip8_err_t __DRW_VX_VY_N(chip8_t *ch8, uint8_t x, uint8_t y, uint8_t n);
+static inline chip8_err_t __SKP_VX(chip8_t *ch8, uint8_t x);
+static inline chip8_err_t __SKNP_VX(chip8_t *ch8, uint8_t x);
+static inline chip8_err_t __LD_VX_DT(chip8_t *ch8, uint8_t x);
+static inline chip8_err_t __LD_VX_K(chip8_t *ch8, uint8_t x);
+static inline chip8_err_t __LD_DT_VX(chip8_t *ch8, uint8_t x);
+static inline chip8_err_t __LD_ST_VX(chip8_t *ch8, uint8_t x);
+static inline chip8_err_t __ADD_I_VX(chip8_t *ch8, uint8_t x);
+static inline chip8_err_t __LD_F_VX(chip8_t *ch8, uint8_t x);
+static inline chip8_err_t __LD_B_VX(chip8_t *ch8, uint8_t x);
+static inline chip8_err_t __LD_I_VX(chip8_t *ch8, uint8_t x);
+static inline chip8_err_t __LD_VX_I(chip8_t *ch8, uint8_t x);
 
 /* Global variables --------------------------------------------------------- */
 
-// Hex digits sprites
-static const uint8_t fonts[FONT_SIZE * FONT_CHARS] = {
+static const uint8_t chip8_fonts[CHIP8_FONT_SIZE] = {
     0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
     0x20, 0x60, 0x20, 0x20, 0x70, // 1
     0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
@@ -74,7 +73,7 @@ static const uint8_t fonts[FONT_SIZE * FONT_CHARS] = {
  *
  * @param ch8 Chip8 instance
  * @param cfg Chip8 configuration
- * @return chip8_err_t Error code
+ * @return    Error code
  */
 chip8_err_t chip8_init(chip8_t *ch8, chip8_cfg_t *cfg)
 {
@@ -91,7 +90,7 @@ chip8_err_t chip8_init(chip8_t *ch8, chip8_cfg_t *cfg)
         return CHIP8_INSUFF_MEMORY;
 
     memset(ch8, 0x0, sizeof(chip8_t));
-    memcpy(&(ch8->ram[FONT_ADDR_START]), fonts, sizeof(fonts));
+    memcpy(&(ch8->ram[CHIP8_FONT_ADDR_START]), chip8_fonts, sizeof(chip8_fonts));
     fread(&(ch8->ram[cfg->addr]), sizeof(uint8_t), bytes, cfg->rom);
 
     ch8->PC = cfg->addr;
@@ -103,7 +102,7 @@ chip8_err_t chip8_init(chip8_t *ch8, chip8_cfg_t *cfg)
  * @brief Run one Chip8 instruction cycle, must be called at 60 Hz
  *
  * @param ch8 Chip8 instance
- * @return chip8_err_t Error code
+ * @return    Error code
  */
 chip8_err_t chip8_run(chip8_t *ch8)
 {
@@ -310,23 +309,25 @@ chip8_err_t chip8_run(chip8_t *ch8)
 /**
  * @brief Clear the display
  * [00E0]
- *
- * @return chip8_err_t Error code
+ * 
+ * @param ch8 Chip8 instance
+ * @return    Error code
  */
 chip8_err_t __CLS(chip8_t *ch8)
 {
-    memset(ch8->display, 0x0, sizeof(uint8_t) * DISPLAY_SIZE);
+    memset(ch8->display, 0x0, sizeof(uint8_t) * CHIP8_DISPLAY_SIZE);
     return CHIP8_OK;
 }
 
 /**
  * @brief Return from a subroutine
  * [00EE]
- *
+ * 
  * @details The interpreter sets the program counter to the address at the top
  * of the stack, then subtracts 1 from the stack pointer.
- *
- * @return chip8_err_t Error code
+ * 
+ * @param ch8 Chip8 instance
+ * @return    Error code
  */
 chip8_err_t __RET(chip8_t *ch8)
 {
@@ -338,13 +339,15 @@ chip8_err_t __RET(chip8_t *ch8)
 }
 
 /**
- * @brief Jump to a machine code routine at NNN
+ * @brief Jump to a machine code routine at nnn
  * [0NNN]
- *
+ * 
  * @details This instruction is only used on the old computers on which Chip-8
  * was originally implemented. It is ignored by modern interpreters.
- *
- * @return chip8_err_t Error code
+ * 
+ * @param ch8 Chip8 instance
+ * @param nnn Routine address
+ * @return    Error code
  */
 chip8_err_t __SYS(chip8_t *ch8, uint16_t nnn)
 {
@@ -355,12 +358,14 @@ chip8_err_t __SYS(chip8_t *ch8, uint16_t nnn)
 }
 
 /**
- * @brief Jump to location NNN
+ * @brief Jump to location nnn
  * [1NNN]
- *
- * @details The interpreter sets the program counter to NNN.
- *
- * @return chip8_err_t Error code
+ * 
+ * @details The interpreter sets the program counter to nnn.
+ * 
+ * @param ch8 Chip8 instance
+ * @param nnn Jump address
+ * @return    Error code
  */
 chip8_err_t __JP_NNN(chip8_t *ch8, uint16_t nnn)
 {
@@ -373,17 +378,19 @@ chip8_err_t __JP_NNN(chip8_t *ch8, uint16_t nnn)
 }
 
 /**
- * @brief Call subroutine at NNN
+ * @brief Call subroutine at nnn
  * [2NNN]
- *
+ * 
  * @details The interpreter increments the stack pointer, then puts the current
- * PC on the top of the stack. The PC is then set to NNN.
- *
- * @return chip8_err_t Error code
+ * PC on the top of the stack. The PC is then set to nnn.
+ * 
+ * @param ch8 Chip8 instance
+ * @param nnn Subroutine address
+ * @return    Error code
  */
 chip8_err_t __CALL_NNN(chip8_t *ch8, uint16_t nnn)
 {
-    if (ch8->SP > STACK_SIZE - 1)
+    if (ch8->SP > CHIP8_STACK_SIZE - 1)
         return CHIP8_STACK_OVERFLOW;
 
     ch8->stack[++ch8->SP] = ch8->PC;
@@ -393,13 +400,16 @@ chip8_err_t __CALL_NNN(chip8_t *ch8, uint16_t nnn)
 }
 
 /**
- * @brief Skip next instruction if VX = NN
+ * @brief Skip next instruction if Vx = nn
  * [3XNN]
- *
- * @details The interpreter compares register VX to NN, and if they are equal,
+ * 
+ * @details The interpreter compares register Vx to nn, and if they are equal,
  * increments the program counter by 2.
- *
- * @return chip8_err_t Error code
+ * 
+ * @param ch8 Chip8 instance
+ * @param x   General purpose register index
+ * @param nn  8-bit value
+ * @return    Error code
  */
 chip8_err_t __SE_VX_NN(chip8_t *ch8, uint8_t x, uint8_t nn)
 {
@@ -410,13 +420,16 @@ chip8_err_t __SE_VX_NN(chip8_t *ch8, uint8_t x, uint8_t nn)
 }
 
 /**
- * @brief Skip next instruction if VX != NN
+ * @brief Skip next instruction if Vx != nn
  * [4XNN]
- *
- * @details The interpreter compares register VX to NN, and if they are not
+ * 
+ * @details The interpreter compares register Vx to nn, and if they are not
  * equal, increments the program counter by 2.
- *
- * @return chip8_err_t Error code
+ * 
+ * @param ch8 Chip8 instance
+ * @param x   General purpose register index
+ * @param nn  8-bit value
+ * @return    Error code
  */
 chip8_err_t __SNE_VX_NN(chip8_t *ch8, uint8_t x, uint8_t nn)
 {
@@ -427,13 +440,16 @@ chip8_err_t __SNE_VX_NN(chip8_t *ch8, uint8_t x, uint8_t nn)
 }
 
 /**
- * @brief Skip next instruction if VX = VY
+ * @brief Skip next instruction if Vx = Vy
  * [5XY0]
- *
- * @details The interpreter compares register VX to register VY, and if they
+ * 
+ * @details The interpreter compares register Vx to register Vy, and if they
  * are equal, increments the program counter by 2.
- *
- * @return chip8_err_t Error code
+ * 
+ * @param ch8 Chip8 instance
+ * @param x   General purpose register index
+ * @param y   General purpose register index
+ * @return    Error code
  */
 chip8_err_t __SE_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
 {
@@ -444,12 +460,15 @@ chip8_err_t __SE_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
 }
 
 /**
- * @brief Set VX = NN
+ * @brief Set Vx = nn
  * [6XNN]
- *
- * @details The interpreter puts the value NN into register VX.
- *
- * @return chip8_err_t Error code
+ * 
+ * @details The interpreter puts the value nn into register Vx.
+ * 
+ * @param ch8 Chip8 instance
+ * @param x   General purpose register index
+ * @param nn  8-bit value
+ * @return    Error code
  */
 chip8_err_t __LD_VX_NN(chip8_t *ch8, uint8_t x, uint8_t nn)
 {
@@ -459,12 +478,16 @@ chip8_err_t __LD_VX_NN(chip8_t *ch8, uint8_t x, uint8_t nn)
 }
 
 /**
- * @brief Set VX = VX + NN
+ * @brief Set Vx = Vx + nn
  * [7XNN]
- *
- * Adds the value NN to the value of register VX, then stores the result in VX.
- *
- * @return chip8_err_t Error code
+ * 
+ * @details Adds the value nn to the value of register Vx, then stores the
+ * result in Vx.
+ * 
+ * @param ch8 Chip8 instance
+ * @param x   General purpose register index
+ * @param nn  8-bit value
+ * @return    Error code
  */
 chip8_err_t __ADD_VX_NN(chip8_t *ch8, uint8_t x, uint8_t nn)
 {
@@ -474,12 +497,15 @@ chip8_err_t __ADD_VX_NN(chip8_t *ch8, uint8_t x, uint8_t nn)
 }
 
 /**
- * @brief Set VX = VY
+ * @brief Set Vx = Vy
  * [8XY0]
- *
- * @details Stores the value of register VY in register VX.
- *
- * @return chip8_err_t Error code
+ * 
+ * @details Stores the value of register Vy in register Vx.
+ * 
+ * @param ch8 Chip8 instance
+ * @param x   General purpose register index
+ * @param y   General purpose register index
+ * @return    Error code
  */
 chip8_err_t __LD_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
 {
@@ -489,15 +515,18 @@ chip8_err_t __LD_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
 }
 
 /**
- * @brief Set VX = VX OR VY
+ * @brief Set Vx = Vx OR Vx
  * [8XY1]
- *
- * @details Performs a bitwise OR on the values of VX and VY, then stores the
- * result in VX. A bitwise OR compares the corrseponding bits from two values,
+ * 
+ * @details Performs a bitwise OR on the values of Vx and Vx, then stores the
+ * result in Vx. A bitwise OR compares the corrseponding bits from two values,
  * and if either bit is 1, then the same bit in the result is also 1.
  * Otherwise, it is 0.
- *
- * @return chip8_err_t Error code
+ * 
+ * @param ch8 Chip8 instance
+ * @param x   General purpose register index
+ * @param y   General purpose register index
+ * @return    Error code
  */
 chip8_err_t __OR_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
 {
@@ -507,15 +536,18 @@ chip8_err_t __OR_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
 }
 
 /**
- * @brief Set VX = VX AND VY
+ * @brief Set Vx = Vx AND Vy
  * [8XY2]
- *
- * @details Performs a bitwise AND on the values of VX and VY, then stores the
- * result in VX. A bitwise AND compares the corrseponding bits from two values,
+ * 
+ * @details Performs a bitwise AND on the values of Vx and Vy, then stores the
+ * result in Vx. A bitwise AND compares the corrseponding bits from two values,
  * and if both bits are 1, then the same bit in the result is also 1.
  * Otherwise, it is 0.
- *
- * @return chip8_err_t Error code
+ * 
+ * @param ch8 Chip8 instance
+ * @param x   General purpose register index
+ * @param y   General purpose register index
+ * @return    Error code
  */
 chip8_err_t __AND_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
 {
@@ -525,15 +557,18 @@ chip8_err_t __AND_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
 }
 
 /**
- * @brief Set VX = VX XOR VY
+ * @brief Set Vx = Vx XOR Vy
  * [8XY3]
- *
- * @details Performs a bitwise exclusive OR on the values of VX and VY, then
- * stores the result in VX. An exclusive OR compares the corrseponding bits
+ * 
+ * @details Performs a bitwise exclusive OR on the values of Vx and Vy, then
+ * stores the result in Vx. An exclusive OR compares the corrseponding bits
  * from two values, and if the bits are not both the same, then the
  * corresponding bit in the result is set to 1. Otherwise, it is 0.
- *
- * @return chip8_err_t Error code
+ * 
+ * @param ch8 Chip8 instance
+ * @param x   General purpose register index
+ * @param y   General purpose register index
+ * @return    Error code
  */
 chip8_err_t __XOR_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
 {
@@ -543,14 +578,17 @@ chip8_err_t __XOR_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
 }
 
 /**
- * @brief Set VX = VX + VY, set VF = carry
+ * @brief Set Vx = Vx + Vy, set VF = carry
  * [8XY4]
- *
- * @details The values of VX and VY are added together. If the result is
+ * 
+ * @details The values of Vx and Vy are added together. If the result is
  * greater than 8 bits (i.e., > 255,) VF is set to 1, otherwise 0. Only the
- * lowest 8 bits of the result are kept, and stored in VX.
- *
- * @return chip8_err_t Error code
+ * lowest 8 bits of the result are kept, and stored in Vx.
+ * 
+ * @param ch8 Chip8 instance
+ * @param x   General purpose register index
+ * @param y   General purpose register index
+ * @return    Error code
  */
 chip8_err_t __ADD_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
 {
@@ -562,13 +600,16 @@ chip8_err_t __ADD_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
 }
 
 /**
- * @brief Set VX = VX - VY, set VF = NOT borrow
+ * @brief Set Vx = Vx - Vy, set VF = NOT borrow
  * [8XY5]
- *
- * @details If VX > VY, then VF is set to 1, otherwise 0. Then VY is subtracted
- * from VX, and the results stored in VX.
- *
- * @return chip8_err_t Error code
+ * 
+ * @details If Vx > Vy, then VF is set to 1, otherwise 0. Then Vy is subtracted
+ * from Vx, and the results stored in Vx.
+ * 
+ * @param ch8 Chip8 instance
+ * @param x   General purpose register index
+ * @param y   General purpose register index
+ * @return    Error code
  */
 chip8_err_t __SUB_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
 {
@@ -579,13 +620,16 @@ chip8_err_t __SUB_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
 }
 
 /**
- * @brief Set VX = VX SHR 1
+ * @brief Set Vx = Vx SHR 1
  * [8XY6]
- *
- * @details If the least-significant bit of VX is 1, then VF is set to 1,
- * otherwise 0. Then VX is divided by 2.
- *
- * @return chip8_err_t Error code
+ * 
+ * @details If the least-significant bit of Vx is 1, then VF is set to 1,
+ * otherwise 0. Then Vx is divided by 2.
+ * 
+ * @param ch8 Chip8 instance
+ * @param x   General purpose register index
+ * @param y   General purpose register index
+ * @return    Error code
  */
 chip8_err_t __SHR_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
 {
@@ -596,13 +640,16 @@ chip8_err_t __SHR_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
 }
 
 /**
- * @brief Set VX = VY - VX, set VF = NOT borrow
+ * @brief Set Vx = Vy - Vx, set VF = NOT borrow
  * [8XY7]
- *
- * @details If VY > VX, then VF is set to 1, otherwise 0. Then VX is subtracted
- * from VY, and the results stored in VX.
- *
- * @return chip8_err_t Error code
+ * 
+ * @details If Vy > Vx, then VF is set to 1, otherwise 0. Then Vx is subtracted
+ * from Vy, and the results stored in Vx.
+ * 
+ * @param ch8 Chip8 instance
+ * @param x   General purpose register index
+ * @param y   General purpose register index
+ * @return    Error code
  */
 chip8_err_t __SUBN_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
 {
@@ -613,13 +660,16 @@ chip8_err_t __SUBN_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
 }
 
 /**
- * @brief Set VX = VX SHL 1
+ * @brief Set Vx = Vx SHL 1
  * [8XYE]
- *
- * @details If the most-significant bit of VX is 1, then VF is set to 1,
- * otherwise to 0. Then VX is multiplied by 2.
- *
- * @return chip8_err_t Error code
+ * 
+ * @details If the most-significant bit of Vx is 1, then VF is set to 1,
+ * otherwise to 0. Then Vx is multiplied by 2.
+ * 
+ * @param ch8 Chip8 instance
+ * @param x   General purpose register index
+ * @param y   General purpose register index
+ * @return    Error code
  */
 chip8_err_t __SHL_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
 {
@@ -630,13 +680,16 @@ chip8_err_t __SHL_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
 }
 
 /**
- * @brief Skip next instruction if VX != VY
+ * @brief Skip next instruction if Vx != Vy
  * [9XY0]
- *
- * @details The values of VX and VY are compared, and if they are not equal,
+ * 
+ * @details The values of Vx and Vy are compared, and if they are not equal,
  * the program counter is increased by 2.
- *
- * @return chip8_err_t Error code
+ * 
+ * @param ch8 Chip8 instance
+ * @param x   General purpose register index
+ * @param y   General purpose register index
+ * @return    Error code
  */
 chip8_err_t __SNE_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
 {
@@ -647,12 +700,14 @@ chip8_err_t __SNE_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
 }
 
 /**
- * @brief Set I = NNN
+ * @brief Set I = nnn
  * [ANNN]
- *
- * @details The value of register I is set to NNN.
- *
- * @return chip8_err_t Error code
+ * 
+ * @details The value of register I is set to nnn.
+ * 
+ * @param ch8 Chip8 instance
+ * @param nnn RAM address
+ * @return    Error code
  */
 chip8_err_t __LD_I_NNN(chip8_t *ch8, uint16_t nnn)
 {
@@ -662,12 +717,15 @@ chip8_err_t __LD_I_NNN(chip8_t *ch8, uint16_t nnn)
 }
 
 /**
- * @brief Jump to location NNN + V0
+ * @brief Jump to location nnn + V0
  * [BNNN]
- *
- * @details The program counter is set to NNN plus the value of V0.
- *
- * @return chip8_err_t Error code
+ * 
+ * @details The program counter is set to nnn plus the value of V0.
+ * 
+ * @param ch8 Chip8 instance
+ * @param nnn RAM address
+ * @param y   General purpose register index
+ * @return    Error code
  */
 chip8_err_t __JP_V0_NNN(chip8_t *ch8, uint16_t nnn)
 {
@@ -677,13 +735,16 @@ chip8_err_t __JP_V0_NNN(chip8_t *ch8, uint16_t nnn)
 }
 
 /**
- * @brief Set VX = random byte AND NN
+ * @brief Set Vx = random byte AND nn
  * [CXNN]
- *
+ * 
  * @details The interpreter generates a random number from 0 to 255, which is
- * then ANDed with the value NN. The results are stored in VX.
- *
- * @return chip8_err_t Error code
+ * then ANDed with the value nn. The results are stored in Vx.
+ * 
+ * @param ch8 Chip8 instance
+ * @param x   General purpose register index
+ * @param nn  8-bit value
+ * @return    Error code
  */
 chip8_err_t __RND_VX_NN(chip8_t *ch8, uint8_t x, uint8_t nn)
 {
@@ -694,41 +755,45 @@ chip8_err_t __RND_VX_NN(chip8_t *ch8, uint8_t x, uint8_t nn)
 }
 
 /**
- * @brief Display N-byte sprite starting at memory location I at (VX, VY),
+ * @brief Display n-byte sprite starting at memory location I at (Vx, Vy),
  * set VF = collision
  * [DXYN]
- *
+ * 
  * @details The interpreter reads n bytes from memory, starting at the address
  * stored in I. These bytes are then displayed as sprites on screen at
- * coordinates (VX, VY). Sprites are XORed onto the existing screen. If this
+ * coordinates (Vx, Vy). Sprites are XORed onto the existing screen. If this
  * causes any pixels to be erased, VF is set to 1, otherwise it is set to 0.
  * If the sprite is positioned so part of it is outside the coordinates of the
  * display, it wraps around to the opposite side of the screen.
- *
- * @return chip8_err_t Error code
+ * 
+ * @param ch8 Chip8 instance
+ * @param x   General purpose register index
+ * @param y   General purpose register index
+ * @param n   4-bit value
+ * @return    Error code
  */
 chip8_err_t __DRW_VX_VY_N(chip8_t *ch8, uint8_t x, uint8_t y, uint8_t n)
 {
-    uint8_t start_x = ch8->V[x] % DISPLAY_WIDTH;
-    uint8_t start_y = ch8->V[y] % DISPLAY_HEIGHT;
+    uint8_t start_x = ch8->V[x] % CHIP8_DISPLAY_WIDTH;
+    uint8_t start_y = ch8->V[y] % CHIP8_DISPLAY_HEIGHT;
     ch8->V[0xF] = 0;
 
     for (uint8_t h = 0; h < n; ++h)
     {
         uint8_t y = start_y + h;
-        if (y >= DISPLAY_HEIGHT)
+        if (y >= CHIP8_DISPLAY_HEIGHT)
             break;
 
-        for (uint8_t w = 0; w < SPRITE_WIDTH; ++w)
+        for (uint8_t w = 0; w < 8; ++w)
         {
             uint8_t x = start_x + w;
-            if (x >= DISPLAY_WIDTH)
+            if (x >= CHIP8_DISPLAY_WIDTH)
                 continue;
 
-            uint8_t old_val = ch8->display[x + y * DISPLAY_WIDTH];
+            uint8_t old_val = ch8->display[x + y * CHIP8_DISPLAY_WIDTH];
             uint8_t new_val = old_val ^ (ch8->ram[ch8->I + h] & (1 << (7 - w)));
 
-            ch8->display[x + y * DISPLAY_WIDTH] = new_val;
+            ch8->display[x + y * CHIP8_DISPLAY_WIDTH] = new_val;
             ch8->V[0xF] |= ~new_val & old_val;
         }
     }
@@ -737,17 +802,19 @@ chip8_err_t __DRW_VX_VY_N(chip8_t *ch8, uint8_t x, uint8_t y, uint8_t n)
 }
 
 /**
- * @brief Skip next instruction if key with the value of VX is pressed
+ * @brief Skip next instruction if key with the value of Vx is pressed
  * [EX9E]
- *
+ * 
  * @details Checks the keyboard, and if the key corresponding to the value of
- * VX is currently in the down position, PC is increased by 2.
- *
- * @return chip8_err_t Error code
+ * Vx is currently in the down position, PC is increased by 2.
+ * 
+ * @param ch8 Chip8 instance
+ * @param x   General purpose register index
+ * @return    Error code
  */
 chip8_err_t __SKP_VX(chip8_t *ch8, uint8_t x)
 {
-    if (ch8->V[x] >= KEYS_SIZE)
+    if (ch8->V[x] >= CHIP8_KEYS_SIZE)
         return CHIP8_INVALID_KEY;
 
     if (ch8->keys[ch8->V[x]])
@@ -757,17 +824,19 @@ chip8_err_t __SKP_VX(chip8_t *ch8, uint8_t x)
 }
 
 /**
- * @brief Skip next instruction if key with the value of VX is not pressed
+ * @brief Skip next instruction if key with the value of Vx is not pressed
  * [EXA1]
- *
+ * 
  * @details Checks the keyboard, and if the key corresponding to the value of
- * VX is currently in the up position, PC is increased by 2.
- *
- * @return chip8_err_t Error code
+ * Vx is currently in the up position, PC is increased by 2.
+ * 
+ * @param ch8 Chip8 instance
+ * @param x   General purpose register index
+ * @return    Error code
  */
 chip8_err_t __SKNP_VX(chip8_t *ch8, uint8_t x)
 {
-    if (ch8->V[x] >= KEYS_SIZE)
+    if (ch8->V[x] >= CHIP8_KEYS_SIZE)
         return CHIP8_INVALID_KEY;
 
     if (!ch8->keys[ch8->V[x]])
@@ -777,12 +846,14 @@ chip8_err_t __SKNP_VX(chip8_t *ch8, uint8_t x)
 }
 
 /**
- * @brief Set VX = delay timer value
+ * @brief Set Vx = delay timer value
  * [FX07]
- *
- * @details The value of DT is placed into VX.
- *
- * @return chip8_err_t Error code
+ * 
+ * @details The value of DT is placed into Vx.
+ * 
+ * @param ch8 Chip8 instance
+ * @param x   General purpose register index
+ * @return    Error code
  */
 chip8_err_t __LD_VX_DT(chip8_t *ch8, uint8_t x)
 {
@@ -792,17 +863,20 @@ chip8_err_t __LD_VX_DT(chip8_t *ch8, uint8_t x)
 }
 
 /**
- * @brief Wait for a key press, store the value of the key in VX
+ * @brief Wait for a key press, store the value of the key in Vx
  * [FX0A]
- *
+ * 
  * @details All execution stops until a key is pressed, then the value of that
- * key is stored in VX.
- *
- * @return chip8_err_t Error code
+ * key is stored in Vx.
+ * 
+ * @param ch8 Chip8 instance
+ * @param x   General purpose register index
+ * @param y   General purpose register index
+ * @return    Error code
  */
 chip8_err_t __LD_VX_K(chip8_t *ch8, uint8_t x)
 {
-    for (uint8_t i = 0; i < KEYS_SIZE; ++i)
+    for (uint8_t i = 0; i < CHIP8_KEYS_SIZE; ++i)
     {
         if (ch8->keys[i] == 1)
         {
@@ -816,12 +890,14 @@ chip8_err_t __LD_VX_K(chip8_t *ch8, uint8_t x)
 }
 
 /**
- * @brief Set delay timer = VX
+ * @brief Set delay timer = Vx
  * [FX15]
- *
- * @details DT is set equal to the value of VX.
- *
- * @return chip8_err_t Error code
+ * 
+ * @details DT is set equal to the value of Vx.
+ * 
+ * @param ch8 Chip8 instance
+ * @param x   General purpose register index
+ * @return    Error code
  */
 chip8_err_t __LD_DT_VX(chip8_t *ch8, uint8_t x)
 {
@@ -831,12 +907,14 @@ chip8_err_t __LD_DT_VX(chip8_t *ch8, uint8_t x)
 }
 
 /**
- * @brief Set sound timer = VX
+ * @brief Set sound timer = Vx
  * [FX18]
- *
- * @details ST is set equal to the value of VX.
- *
- * @return chip8_err_t Error code
+ * 
+ * @details ST is set equal to the value of Vx.
+ * 
+ * @param ch8 Chip8 instance
+ * @param x   General purpose register index
+ * @return    Error code
  */
 chip8_err_t __LD_ST_VX(chip8_t *ch8, uint8_t x)
 {
@@ -846,12 +924,14 @@ chip8_err_t __LD_ST_VX(chip8_t *ch8, uint8_t x)
 }
 
 /**
- * @brief Set I = I + VX
+ * @brief Set I = I + Vx
  * [FX1E]
- *
- * @details The values of I and VX are added, and the results are stored in I.
- *
- * @return chip8_err_t Error code
+ * 
+ * @details The values of I and Vx are added, and the results are stored in I.
+ * 
+ * @param ch8 Chip8 instance
+ * @param x   General purpose register index
+ * @return    Error code
  */
 chip8_err_t __ADD_I_VX(chip8_t *ch8, uint8_t x)
 {
@@ -861,19 +941,21 @@ chip8_err_t __ADD_I_VX(chip8_t *ch8, uint8_t x)
 }
 
 /**
- * @brief Set I = location of sprite for digit VX
+ * @brief Set I = location of sprite for digit Vx
  * [FX29]
- *
+ * 
  * @details The value of I is set to the location for the hexadecimal sprite
- * corresponding to the value of VX.
- *
- * @return chip8_err_t Error code
+ * corresponding to the value of Vx.
+ * 
+ * @param ch8 Chip8 instance
+ * @param x   General purpose register index
+ * @return    Error code
  */
 chip8_err_t __LD_F_VX(chip8_t *ch8, uint8_t x)
 {
-    uint8_t addr = (FONT_SIZE * ch8->V[x]) + FONT_ADDR_START;
+    uint8_t addr = (CHIP8_CHAR_SIZE * ch8->V[x]) + CHIP8_FONT_ADDR_START;
 
-    if (addr > FONT_ADDR_END)
+    if (addr > CHIP8_FONT_ADDR_END)
         return CHIP8_INVALID_ADDR;
 
     ch8->I = addr;
@@ -882,14 +964,16 @@ chip8_err_t __LD_F_VX(chip8_t *ch8, uint8_t x)
 }
 
 /**
- * @brief Store BCD representation of VX in memory locations I, I+1, and I+2
+ * @brief Store BCD representation of Vx in memory locations I, I+1, and I+2
  * [FX33]
  *
- * @details The interpreter takes the decimal value of VX, and places the
+ * @details The interpreter takes the decimal value of Vx, and places the
  * hundreds digit in memory at location in I, the tens digit at location I+1,
  * and the ones digit at location I+2.
- *
- * @return chip8_err_t Error code
+ * 
+ * @param ch8 Chip8 instance
+ * @param x   General purpose register index
+ * @return    Error code
  */
 chip8_err_t __LD_B_VX(chip8_t *ch8, uint8_t x)
 {
@@ -905,20 +989,20 @@ chip8_err_t __LD_B_VX(chip8_t *ch8, uint8_t x)
 }
 
 /**
- * @brief Store registers V0 through VX in memory starting at location I
+ * @brief Store registers V0 through Vx in memory starting at location I
  * [FX55]
- *
- * @details The interpreter copies the values of registers V0 through VX into
+ * 
+ * @details The interpreter copies the values of registers V0 through Vx into
  * memory, starting at the address in I.
- *
- * @return chip8_err_t Error code
+ * 
+ * @param ch8 Chip8 instance
+ * @param x   General purpose register index
+ * @return    Error code
  */
 chip8_err_t __LD_I_VX(chip8_t *ch8, uint8_t x)
 {
     /** NOTE: Increment I instead of index in order to run COSMAC VIP games
-     *  uint8_t index = ch8->I;
-     */
-
+     *  uint8_t index = ch8->I; */
     for (uint8_t i = 0; i <= x; ++i)
         ch8->ram[ch8->I++] = ch8->V[i];
 
@@ -926,20 +1010,20 @@ chip8_err_t __LD_I_VX(chip8_t *ch8, uint8_t x)
 }
 
 /**
- * @brief Read registers V0 through VX from memory starting at location I
+ * @brief Read registers V0 through Vx from memory starting at location I
  * [FX65]
- *
+ * 
  * @details The interpreter reads values from memory starting at location I
- * into registers V0 through VX.
- *
- * @return chip8_err_t Error code
+ * into registers V0 through Vx.
+ * 
+ * @param ch8 Chip8 instance
+ * @param x   General purpose register index
+ * @return    Error code
  */
 chip8_err_t __LD_VX_I(chip8_t *ch8, uint8_t x)
 {
     /** NOTE: Increment I instead of index in order to run COSMAC VIP games
-     *  uint8_t index = ch8->I;
-     */
-
+     *  uint8_t index = ch8->I; */
     for (uint8_t i = 0; i <= x; ++i)
         ch8->V[i] = ch8->ram[ch8->I++];
 

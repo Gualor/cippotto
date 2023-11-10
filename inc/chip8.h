@@ -10,29 +10,28 @@
 
 /* Definitions -------------------------------------------------------------- */
 
-#define REGISTER_NUM 16
-#define STACK_SIZE 16
-#define RAM_SIZE 4096
+// Memory
+#define CHIP8_REGS_NUM 16
+#define CHIP8_STACK_SIZE 16
+#define CHIP8_RAM_SIZE 4096
 
-#define DECODED_SIZE 50
+// Display
+#define CHIP8_DISPLAY_WIDTH 64
+#define CHIP8_DISPLAY_HEIGHT 32
+#define CHIP8_DISPLAY_SIZE (CHIP8_DISPLAY_WIDTH * CHIP8_DISPLAY_HEIGHT)
 
-#define FONT_CHARS 16
-#define FONT_SIZE 5
-#define FONT_ADDR_START (CHIP8_RAM_START)
-#define FONT_ADDR_END (FONT_ADDR_START + (FONT_CHARS * FONT_SIZE))
+// Font
+#define CHIP8_CHAR_NUM 16
+#define CHIP8_CHAR_SIZE 5
+#define CHIP8_FONT_SIZE (CHIP8_CHAR_NUM * CHIP8_CHAR_SIZE)
+#define CHIP8_FONT_ADDR_START 0x000
+#define CHIP8_FONT_ADDR_END (CHIP8_FONT_ADDR_START + CHIP8_FONT_SIZE)
 
-#define COLOR_BLACK 0
-#define COLOR_WHITE 1
+// Keypad
+#define CHIP8_KEYS_SIZE 16
 
-#define SPRITE_WIDTH 8
-#define SPRITE_HEIGHT_MIN 1
-#define SPRITE_HEIGHT_MAX 15
-
-#define DISPLAY_WIDTH 64
-#define DISPLAY_HEIGHT 32
-#define DISPLAY_SIZE (DISPLAY_WIDTH * DISPLAY_HEIGHT)
-
-#define KEYS_SIZE 16
+// Opcode debug
+#define CHIP8_DECODE_SIZE 50
 
 /* Data types --------------------------------------------------------------- */
 
@@ -63,17 +62,17 @@ typedef struct
 
 typedef struct
 {
-    uint8_t V[REGISTER_NUM];       // General purpose registers
-    uint8_t DT;                    // Delay timer register
-    uint8_t ST;                    // Sound timer register
-    uint16_t I;                    // Index register
-    uint16_t PC;                   // Program counter register
-    uint16_t SP;                   // Stack pointer register
-    uint16_t stack[STACK_SIZE];    // Stack to store return addresses
-    uint8_t ram[RAM_SIZE];         // RAM memory map
-    uint8_t keys[KEYS_SIZE];       // IO keys states
-    uint8_t display[DISPLAY_SIZE]; // Display buffer
-    char decoded[DECODED_SIZE];    // Decoded opcode string size
+    uint8_t V[CHIP8_REGS_NUM];           // General purpose registers
+    uint8_t DT;                          // Delay timer register
+    uint8_t ST;                          // Sound timer register
+    uint16_t I;                          // Index register
+    uint16_t PC;                         // Program counter register
+    uint16_t SP;                         // Stack pointer register
+    uint16_t stack[CHIP8_STACK_SIZE];    // Stack to store return addresses
+    uint8_t ram[CHIP8_RAM_SIZE];         // RAM memory map
+    uint8_t keys[CHIP8_KEYS_SIZE];       // IO keys states
+    uint8_t display[CHIP8_DISPLAY_SIZE]; // Display buffer
+    char decoded[CHIP8_DECODE_SIZE];     // Decoded opcode string size
 } chip8_t;
 
 /* Function prototypes ------------------------------------------------------ */
