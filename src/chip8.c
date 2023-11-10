@@ -10,17 +10,12 @@
 /* Definitions -------------------------------------------------------------- */
 
 #define REGISTER_NUM 16
-
 #define STACK_SIZE 16
-
-#define RAM_ADDR_START 0x000
-#define RAM_ADDR_PROG 0x200
-#define RAM_ADDR_END 0xFFF
 #define RAM_SIZE 4096
 
 #define FONT_CHARS 16
 #define FONT_SIZE 5
-#define FONT_ADDR_START (RAM_ADDR_START)
+#define FONT_ADDR_START (CHIP8_RAM_START)
 #define FONT_ADDR_END (FONT_ADDR_START + (FONT_CHARS * FONT_SIZE))
 
 #define COLOR_BLACK 0
@@ -131,9 +126,10 @@ uint8_t chip8_keys[KEYS_NUM];
  * @brief CHIP8 interpreter initialization
  *
  * @param rom ROM path
+ * @param prog_addr ROM path
  * @return chip8_err_t Error code
  */
-chip8_err_t chip8_init(char *rom)
+chip8_err_t chip8_init(char *rom, uint16_t prog_addr)
 {
     srand(time(NULL));
 
@@ -148,7 +144,7 @@ chip8_err_t chip8_init(char *rom)
     uint16_t prog_bytes = ftell(file);
     rewind(file);
 
-    fread(&ram[RAM_ADDR_PROG], sizeof(uint8_t), prog_bytes, file);
+    fread(&ram[prog_addr], sizeof(uint8_t), prog_bytes, file);
     fclose(file);
 
     memset(V, 0x0, sizeof(V));
@@ -159,7 +155,7 @@ chip8_err_t chip8_init(char *rom)
     I = 0;
     DT = 0;
     ST = 0;
-    PC = RAM_ADDR_PROG;
+    PC = prog_addr;
     SP = 0;
 
     return CHIP8_OK;
@@ -198,7 +194,7 @@ chip8_err_t chip8_decode(chip8_cmd_t *cmd, uint16_t opcode)
     Y = __NN >> 4;
 
     uint16_t addr = PC - sizeof(uint16_t);
-    printf("0x%04X\t0x%04X\t", addr, opcode);
+    static char decoded[50] = "";
 
     switch (O___)
     {
@@ -206,44 +202,54 @@ chip8_err_t chip8_decode(chip8_cmd_t *cmd, uint16_t opcode)
         switch (__NN)
         {
         case 0xE0:
+            sprintf(decoded, "CLS");
             *cmd = __CLS;
             break;
 
         case 0xEE:
+            sprintf(decoded, "RET");
             *cmd = __RET;
             break;
 
         default:
+            sprintf(decoded, "SYS 0x%04X\t[ignored]", _NNN);
             *cmd = __SYS;
             break;
         }
         break;
 
     case 0x1000:
+        sprintf(decoded, "JP 0x%04X", _NNN);
         *cmd = __JP_NNN;
         break;
 
     case 0x2000:
+        sprintf(decoded, "CALL 0x%04X", _NNN);
         *cmd = __CALL_NNN;
         break;
 
     case 0x3000:
+        sprintf(decoded, "SE V%X, %d", X, __NN);
         *cmd = __SE_VX_NN;
         break;
 
     case 0x4000:
+        sprintf(decoded, "SNE V%X, %d", X, __NN);
         *cmd = __SNE_VX_NN;
         break;
 
     case 0x5000:
+        sprintf(decoded, "SE V%X, V%X", X, Y);
         *cmd = __SE_VX_VY;
         break;
 
     case 0x6000:
+        sprintf(decoded, "LD V%X, %d", X, __NN);
         *cmd = __LD_VX_NN;
         break;
 
     case 0x7000:
+        sprintf(decoded, "ADD V%X, %d", X, __NN);
         *cmd = __ADD_VX_NN;
         break;
 
@@ -251,38 +257,47 @@ chip8_err_t chip8_decode(chip8_cmd_t *cmd, uint16_t opcode)
         switch (___N)
         {
         case 0x0:
+            sprintf(decoded, "LD V%X, V%X", X, Y);
             *cmd = __LD_VX_VY;
             break;
 
         case 0x1:
+            sprintf(decoded, "OR V%X, V%X", X, Y);
             *cmd = __OR_VX_VY;
             break;
 
         case 0x2:
+            sprintf(decoded, "AND V%X, V%X", X, Y);
             *cmd = __AND_VX_VY;
             break;
 
         case 0x3:
+            sprintf(decoded, "XOR V%X, V%X", X, Y);
             *cmd = __XOR_VX_VY;
             break;
 
         case 0x4:
+            sprintf(decoded, "ADD, V%X, V%X\t[Set VF = carry]", X, Y);
             *cmd = __ADD_VX_VY;
             break;
 
         case 0x5:
+            sprintf(decoded, "SUB V%X, V%X\t[Set VF = NOT borrow]", X, Y);
             *cmd = __SUB_VX_VY;
             break;
 
         case 0x6:
+            sprintf(decoded, "SHR V%X, V%X\t[set VF = LSB]", X, Y);
             *cmd = __SHR_VX_VY;
             break;
 
         case 0x7:
+            sprintf(decoded, "SUBN V%X, V%X\t[set VF = NOT borrow]", X, Y);
             *cmd = __SUBN_VX_VY;
             break;
 
         case 0xE:
+            sprintf(decoded, "SHL V%X, V%X\t[set VF = MSB]", X, Y);
             *cmd = __SHL_VX_VY;
             break;
 
@@ -293,22 +308,27 @@ chip8_err_t chip8_decode(chip8_cmd_t *cmd, uint16_t opcode)
         break;
 
     case 0x9000:
+        sprintf(decoded, "SNE V%X, V%X", X, Y);
         *cmd = __SNE_VX_VY;
         break;
 
     case 0xA000:
+        sprintf(decoded, "LD I, 0x%04X", _NNN);
         *cmd = __LD_I_NNN;
         break;
 
     case 0xB000:
+        sprintf(decoded, "JP V0, 0x%04X", _NNN);
         *cmd = __JP_V0_NNN;
         break;
 
     case 0xC000:
+        sprintf(decoded, "RND V%X, %d", X, __NN);
         *cmd = __RND_VX_NN;
         break;
 
     case 0xD000:
+        sprintf(decoded, "DRW V%X, V%X, %d\t[set VF = collision]", X, Y, ___N);
         *cmd = __DRW_VX_VY_N;
         break;
 
@@ -316,10 +336,12 @@ chip8_err_t chip8_decode(chip8_cmd_t *cmd, uint16_t opcode)
         switch (__NN)
         {
         case 0x9E:
+            sprintf(decoded, "SKP V%X", X);
             *cmd = __SKP_VX;
             break;
 
         case 0xA1:
+            sprintf(decoded, "SKNP V%X", X);
             *cmd = __SKNP_VX;
             break;
 
@@ -333,38 +355,47 @@ chip8_err_t chip8_decode(chip8_cmd_t *cmd, uint16_t opcode)
         switch (__NN)
         {
         case 0x07:
+            sprintf(decoded, "LD V%X, DT", X);
             *cmd = __LD_VX_DT;
             break;
 
         case 0x0A:
+            sprintf(decoded, "LD V%X, K", X);
             *cmd = __LD_VX_K;
             break;
 
         case 0x15:
+            sprintf(decoded, "LD DT, V%X", X);
             *cmd = __LD_DT_VX;
             break;
 
         case 0x18:
+            sprintf(decoded, "LD ST, V%X", X);
             *cmd = __LD_ST_VX;
             break;
 
         case 0x1E:
+            sprintf(decoded, "ADD I, V%X", X);
             *cmd = __ADD_I_VX;
             break;
 
         case 0x29:
+            sprintf(decoded, "LD F, V%X", X);
             *cmd = __LD_F_VX;
             break;
 
         case 0x33:
+            sprintf(decoded, "LD B, V%X", X);
             *cmd = __LD_B_VX;
             break;
 
         case 0x55:
+            sprintf(decoded, "LD [I], V%X", X);
             *cmd = __LD_I_VX;
             break;
 
         case 0x65:
+            sprintf(decoded, "LD V%X, [I]", X);
             *cmd = __LD_VX_I;
             break;
 
@@ -379,7 +410,24 @@ chip8_err_t chip8_decode(chip8_cmd_t *cmd, uint16_t opcode)
         break;
     }
 
+    // printf("0x%04X\t0x%04X\t%s\n", addr, opcode, decoded);
+
     return err;
+}
+
+/**
+ * @brief CHIP8 decrement delay and sound timers, must be called at 60Hz
+ * 
+ * @return chip8_err_t Error code
+ */
+chip8_err_t chip8_tick(void)
+{
+    if (DT > 0)
+        --DT;
+    if (ST > 0)
+        --ST;
+
+    return CHIP8_OK;
 }
 
 /**
@@ -390,8 +438,7 @@ chip8_err_t chip8_decode(chip8_cmd_t *cmd, uint16_t opcode)
  */
 chip8_err_t __CLS(void)
 {
-    printf("CLS\n");
-    memset(chip8_display, COLOR_BLACK, sizeof(chip8_display));
+    memset(chip8_display, 0x0, sizeof(chip8_display));
     return CHIP8_OK;
 }
 
@@ -406,7 +453,6 @@ chip8_err_t __CLS(void)
  */
 chip8_err_t __RET(void)
 {
-    printf("RET\n");
 
     if (SP == 0)
         return CHIP8_EXIT;
@@ -426,7 +472,6 @@ chip8_err_t __RET(void)
  */
 chip8_err_t __SYS(void)
 {
-    printf("SYS 0x%04X\t[ignored]\n", _NNN);
     return CHIP8_OK;
 }
 
@@ -440,9 +485,7 @@ chip8_err_t __SYS(void)
  */
 chip8_err_t __JP_NNN(void)
 {
-    printf("JP 0x%04X\n", _NNN);
-
-    if (_NNN > RAM_ADDR_END)
+    if (_NNN > CHIP8_RAM_END)
         return CHIP8_INVALID_ADDR;
 
     PC = _NNN;
@@ -461,8 +504,6 @@ chip8_err_t __JP_NNN(void)
  */
 chip8_err_t __CALL_NNN(void)
 {
-    printf("CALL 0x%04X\n", _NNN);
-
     if (SP > STACK_SIZE - 1)
         return CHIP8_STACK_OVERFLOW;
 
@@ -483,9 +524,9 @@ chip8_err_t __CALL_NNN(void)
  */
 chip8_err_t __SE_VX_NN(void)
 {
-    printf("SE V%X, %d\n", X, __NN);
     if (V[X] == __NN)
         PC += sizeof(uint16_t);
+
     return CHIP8_OK;
 }
 
@@ -500,9 +541,9 @@ chip8_err_t __SE_VX_NN(void)
  */
 chip8_err_t __SNE_VX_NN(void)
 {
-    printf("SNE V%X, %d\n", X, __NN);
     if (V[X] != __NN)
         PC += sizeof(uint16_t);
+
     return CHIP8_OK;
 }
 
@@ -517,9 +558,9 @@ chip8_err_t __SNE_VX_NN(void)
  */
 chip8_err_t __SE_VX_VY(void)
 {
-    printf("SE V%X, V%X\n", X, Y);
     if (V[X] == V[Y])
         PC += sizeof(uint16_t);
+
     return CHIP8_OK;
 }
 
@@ -533,8 +574,8 @@ chip8_err_t __SE_VX_VY(void)
  */
 chip8_err_t __LD_VX_NN(void)
 {
-    printf("LD V%X, %d\n", X, __NN);
     V[X] = __NN;
+
     return CHIP8_OK;
 }
 
@@ -548,8 +589,8 @@ chip8_err_t __LD_VX_NN(void)
  */
 chip8_err_t __ADD_VX_NN(void)
 {
-    printf("ADD V%X, %d\n", X, __NN);
     V[X] += __NN;
+
     return CHIP8_OK;
 }
 
@@ -563,8 +604,8 @@ chip8_err_t __ADD_VX_NN(void)
  */
 chip8_err_t __LD_VX_VY(void)
 {
-    printf("LD V%X, V%X\n", X, Y);
     V[X] = V[Y];
+
     return CHIP8_OK;
 }
 
@@ -581,8 +622,8 @@ chip8_err_t __LD_VX_VY(void)
  */
 chip8_err_t __OR_VX_VY(void)
 {
-    printf("OR V%X, V%X\n", X, Y);
     V[X] |= V[Y];
+
     return CHIP8_OK;
 }
 
@@ -599,8 +640,8 @@ chip8_err_t __OR_VX_VY(void)
  */
 chip8_err_t __AND_VX_VY(void)
 {
-    printf("AND V%X, V%X\n", X, Y);
     V[X] &= V[Y];
+
     return CHIP8_OK;
 }
 
@@ -617,8 +658,8 @@ chip8_err_t __AND_VX_VY(void)
  */
 chip8_err_t __XOR_VX_VY(void)
 {
-    printf("XOR V%X, V%X\n", X, Y);
     V[X] ^= V[Y];
+
     return CHIP8_OK;
 }
 
@@ -634,10 +675,10 @@ chip8_err_t __XOR_VX_VY(void)
  */
 chip8_err_t __ADD_VX_VY(void)
 {
-    printf("ADD, V%X, V%X\t[Set VF = carry]\n", X, Y);
     uint16_t res = V[X] + V[Y];
     V[0xF] = res >> 8;
     V[X] = (uint8_t)res;
+
     return CHIP8_OK;
 }
 
@@ -652,9 +693,9 @@ chip8_err_t __ADD_VX_VY(void)
  */
 chip8_err_t __SUB_VX_VY(void)
 {
-    printf("SUB V%X, V%X\t[Set VF = NOT borrow]\n", X, Y);
     V[0xF] = (V[X] > V[Y]) ? 1 : 0;
     V[X] -= V[Y];
+
     return CHIP8_OK;
 }
 
@@ -669,9 +710,9 @@ chip8_err_t __SUB_VX_VY(void)
  */
 chip8_err_t __SHR_VX_VY(void)
 {
-    printf("SHR V%X, V%X\t[set VF = LSB]\n", X, Y);
     V[0xF] = (V[X] & 0x1) ? 1 : 0;
     V[X] >>= V[Y];
+
     return CHIP8_OK;
 }
 
@@ -686,9 +727,9 @@ chip8_err_t __SHR_VX_VY(void)
  */
 chip8_err_t __SUBN_VX_VY(void)
 {
-    printf("SUBN V%X, V%X\t[set VF = NOT borrow]\n", X, Y);
     V[0xF] = (V[Y] > V[X]) ? 1 : 0;
     V[X] = V[Y] - V[X];
+
     return CHIP8_OK;
 }
 
@@ -703,9 +744,9 @@ chip8_err_t __SUBN_VX_VY(void)
  */
 chip8_err_t __SHL_VX_VY(void)
 {
-    printf("SHL V%X, V%X\t[set VF = MSB]\n", X, Y);
     V[0xF] = (V[X] & 0x64) ? 1 : 0;
     V[X] <<= V[Y];
+
     return CHIP8_OK;
 }
 
@@ -720,9 +761,9 @@ chip8_err_t __SHL_VX_VY(void)
  */
 chip8_err_t __SNE_VX_VY(void)
 {
-    printf("SNE V%X, V%X\n", X, Y);
     if (V[X] != V[Y])
         PC += sizeof(uint16_t);
+
     return CHIP8_OK;
 }
 
@@ -736,8 +777,8 @@ chip8_err_t __SNE_VX_VY(void)
  */
 chip8_err_t __LD_I_NNN(void)
 {
-    printf("LD I, 0x%04X\n", _NNN);
     I = _NNN;
+
     return CHIP8_OK;
 }
 
@@ -751,8 +792,8 @@ chip8_err_t __LD_I_NNN(void)
  */
 chip8_err_t __JP_V0_NNN(void)
 {
-    printf("JP V0, 0x%04X\n", _NNN);
     PC = V[0] + _NNN;
+
     return CHIP8_OK;
 }
 
@@ -767,9 +808,9 @@ chip8_err_t __JP_V0_NNN(void)
  */
 chip8_err_t __RND_VX_NN(void)
 {
-    printf("RND V%X, %d\n", X, __NN);
     uint8_t rnd = rand() % 256;
     V[X] = rnd & __NN;
+
     return CHIP8_OK;
 }
 
@@ -789,8 +830,6 @@ chip8_err_t __RND_VX_NN(void)
  */
 chip8_err_t __DRW_VX_VY_N(void)
 {
-    printf("DRW V%X, V%X, %d\t[set VF = collision]\n", X, Y, ___N);
-
     uint8_t start_x = V[X] % DISPLAY_WIDTH;
     uint8_t start_y = V[Y] % DISPLAY_HEIGHT;
     V[0xF] = 0;
@@ -829,8 +868,6 @@ chip8_err_t __DRW_VX_VY_N(void)
  */
 chip8_err_t __SKP_VX(void)
 {
-    printf("SKP V%X\n", X);
-
     if (V[X] >= KEYS_NUM)
         return CHIP8_INVALID_KEY;
 
@@ -851,8 +888,6 @@ chip8_err_t __SKP_VX(void)
  */
 chip8_err_t __SKNP_VX(void)
 {
-    printf("SKNP V%X\n", X);
-
     if (V[X] >= KEYS_NUM)
         return CHIP8_INVALID_KEY;
 
@@ -872,8 +907,8 @@ chip8_err_t __SKNP_VX(void)
  */
 chip8_err_t __LD_VX_DT(void)
 {
-    printf("LD V%X, DT\n", X);
     V[X] = DT;
+
     return CHIP8_OK;
 }
 
@@ -888,8 +923,17 @@ chip8_err_t __LD_VX_DT(void)
  */
 chip8_err_t __LD_VX_K(void)
 {
-    printf("LD V%X, K\n", X);
-    return CHIP8_NOT_IMPLEMENTED;
+    for (uint8_t i = 0; i < KEYS_NUM; ++i)
+    {
+        if (chip8_keys[i] == 1)
+        {
+            V[X] = chip8_keys[i];
+            return CHIP8_OK;
+        }
+    }
+
+    PC -= sizeof(uint16_t);
+    return CHIP8_OK;
 }
 
 /**
@@ -902,8 +946,8 @@ chip8_err_t __LD_VX_K(void)
  */
 chip8_err_t __LD_DT_VX(void)
 {
-    printf("LD DT, V%X\n", X);
     DT = V[X];
+
     return CHIP8_OK;
 }
 
@@ -917,8 +961,8 @@ chip8_err_t __LD_DT_VX(void)
  */
 chip8_err_t __LD_ST_VX(void)
 {
-    printf("LD ST, V%X\n", X);
     ST = V[X];
+
     return CHIP8_OK;
 }
 
@@ -932,8 +976,8 @@ chip8_err_t __LD_ST_VX(void)
  */
 chip8_err_t __ADD_I_VX(void)
 {
-    printf("ADD I, V%X\n", X);
     I += V[X];
+
     return CHIP8_OK;
 }
 
@@ -948,11 +992,11 @@ chip8_err_t __ADD_I_VX(void)
  */
 chip8_err_t __LD_F_VX(void)
 {
-    printf("LD F, V%X\n", X);
-
     uint8_t addr = (FONT_SIZE * V[X]) + FONT_ADDR_START;
+
     if (addr > FONT_ADDR_END)
         return CHIP8_INVALID_ADDR;
+
     I = addr;
 
     return CHIP8_OK;
@@ -970,9 +1014,8 @@ chip8_err_t __LD_F_VX(void)
  */
 chip8_err_t __LD_B_VX(void)
 {
-    printf("LD B, V%X\n", X);
-
     uint8_t val = V[X];
+
     for (uint8_t i = 0; i < 3; ++i)
     {
         ram[I + 2 - i] = val % 10;
@@ -993,10 +1036,9 @@ chip8_err_t __LD_B_VX(void)
  */
 chip8_err_t __LD_I_VX(void)
 {
-    printf("LD [I], V%X\n", X);
-
     /** NOTE: Increment I instead of index in order to run COSMAC VIP games */
     uint8_t index = I;
+
     for (uint8_t i = 0; i <= X; ++i)
         ram[index++] = V[i];
 
@@ -1014,10 +1056,9 @@ chip8_err_t __LD_I_VX(void)
  */
 chip8_err_t __LD_VX_I(void)
 {
-    printf("LD V%X, [I]\n", X);
-
     /** NOTE: Increment I instead of index in order to run COSMAC VIP games */
     uint8_t index = I;
+
     for (uint8_t i = 0; i <= X; ++i)
         V[i] = ram[index++];
 

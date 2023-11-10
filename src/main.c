@@ -58,11 +58,12 @@ int main(int argc, char **argv)
         printf("Usage: %s <rom>\n", argv[0]);
         exit(1);
     }
+    char *rom_path = argv[1];
 
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "CHIP8 Emulator");
     SetTargetFPS(60);
 
-    chip8_init(argv[1]);
+    chip8_init(rom_path, CHIP8_RAM_PROGRAM);
 
     uint16_t opcode;
     chip8_cmd_t chip8_cmd;
@@ -83,6 +84,10 @@ int main(int argc, char **argv)
             break;
 
         err = chip8_cmd();
+        if (err)
+            break;
+
+        err = chip8_tick();
         if (err)
             break;
 
