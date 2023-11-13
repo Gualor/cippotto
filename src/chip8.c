@@ -113,12 +113,6 @@ chip8_err_t chip8_run(chip8_t *ch8)
     // Update program counter
     ch8->PC += sizeof(uint16_t);
 
-    // Update timers
-    if (ch8->DT > 0)
-        --ch8->DT;
-    if (ch8->ST > 0)
-        --ch8->ST;
-
     // Parse opcode
     uint16_t O = (opcode & 0xF000);
     uint16_t NNN = (opcode & 0x0FFF);
@@ -302,6 +296,24 @@ chip8_err_t chip8_run(chip8_t *ch8)
     default:
         return CHIP8_INVALID_CMD;
     }
+
+    return CHIP8_OK;
+}
+
+/**
+ * @brief Decrement delay and sound timers by 1, this function should be called
+ * 60 times per second (i.e., 60 Hz)
+ * 
+ * @param ch8 Chip8 instance
+ * @return chip8_err_t
+ */
+chip8_err_t chip8_tick(chip8_t *ch8)
+{
+    if (ch8->DT > 0)
+        --ch8->DT;
+
+    if (ch8->ST > 0)
+        --ch8->ST;
 
     return CHIP8_OK;
 }
@@ -531,6 +543,7 @@ chip8_err_t __LD_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
 chip8_err_t __OR_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
 {
     ch8->V[x] |= ch8->V[y];
+    ch8->V[0xF] = 0; ///////////////////////////////////////////////////////////
 
     return CHIP8_OK;
 }
@@ -552,6 +565,7 @@ chip8_err_t __OR_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
 chip8_err_t __AND_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
 {
     ch8->V[x] &= ch8->V[y];
+    ch8->V[0xF] = 0; ///////////////////////////////////////////////////////////
 
     return CHIP8_OK;
 }
@@ -573,6 +587,7 @@ chip8_err_t __AND_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
 chip8_err_t __XOR_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
 {
     ch8->V[x] ^= ch8->V[y];
+    ch8->V[0xF] = 0; ///////////////////////////////////////////////////////////
 
     return CHIP8_OK;
 }
@@ -593,8 +608,8 @@ chip8_err_t __XOR_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
 chip8_err_t __ADD_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
 {
     uint16_t res = ch8->V[x] + ch8->V[y];
-    ch8->V[0xF] = res >> 8;
     ch8->V[x] = (uint8_t)res;
+    ch8->V[0xF] = (uint8_t)(res >> 8);
 
     return CHIP8_OK;
 }
@@ -613,14 +628,15 @@ chip8_err_t __ADD_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
  */
 chip8_err_t __SUB_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
 {
-    ch8->V[0xF] = (ch8->V[x] > ch8->V[y]) ? 1 : 0;
+    uint8_t flag = (ch8->V[x] > ch8->V[y]) ? 1 : 0;
     ch8->V[x] -= ch8->V[y];
+    ch8->V[0xF] = flag;
 
     return CHIP8_OK;
 }
 
 /**
- * @brief Set Vx = Vx SHR 1
+ * @brief Set Vx = Vy SHR 1
  * [8XY6]
  * 
  * @details If the least-significant bit of Vx is 1, then VF is set to 1,
@@ -633,8 +649,9 @@ chip8_err_t __SUB_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
  */
 chip8_err_t __SHR_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
 {
-    ch8->V[0xF] = (ch8->V[x] & 0x1) ? 1 : 0;
-    ch8->V[x] >>= ch8->V[y];
+    uint8_t flag = (ch8->V[y] & 0x1) ? 1 : 0;
+    ch8->V[x] = ch8->V[y] >> 1;
+    ch8->V[0xF] = flag;
 
     return CHIP8_OK;
 }
@@ -653,14 +670,15 @@ chip8_err_t __SHR_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
  */
 chip8_err_t __SUBN_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
 {
-    ch8->V[0xF] = (ch8->V[y] > ch8->V[x]) ? 1 : 0;
+    uint8_t flag = (ch8->V[y] > ch8->V[x]) ? 1 : 0;
     ch8->V[x] = ch8->V[y] - ch8->V[x];
+    ch8->V[0xF] = flag;
 
     return CHIP8_OK;
 }
 
 /**
- * @brief Set Vx = Vx SHL 1
+ * @brief Set Vx = Vy SHL 1
  * [8XYE]
  * 
  * @details If the most-significant bit of Vx is 1, then VF is set to 1,
@@ -673,8 +691,9 @@ chip8_err_t __SUBN_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
  */
 chip8_err_t __SHL_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
 {
-    ch8->V[0xF] = (ch8->V[x] & 0x64) ? 1 : 0;
-    ch8->V[x] <<= ch8->V[y];
+    uint8_t flag = (ch8->V[y] & 0x80) ? 1 : 0;
+    ch8->V[x] = ch8->V[y] << 1;
+    ch8->V[0xF] = flag;
 
     return CHIP8_OK;
 }
@@ -776,7 +795,8 @@ chip8_err_t __DRW_VX_VY_N(chip8_t *ch8, uint8_t x, uint8_t y, uint8_t n)
 {
     uint8_t start_x = ch8->V[x] % CHIP8_DISPLAY_WIDTH;
     uint8_t start_y = ch8->V[y] % CHIP8_DISPLAY_HEIGHT;
-    ch8->V[0xF] = 0;
+
+    uint8_t flag = 0;
 
     for (uint8_t h = 0; h < n; ++h)
     {
@@ -794,9 +814,11 @@ chip8_err_t __DRW_VX_VY_N(chip8_t *ch8, uint8_t x, uint8_t y, uint8_t n)
             uint8_t new_val = old_val ^ (ch8->ram[ch8->I + h] & (1 << (7 - w)));
 
             ch8->display[x + y * CHIP8_DISPLAY_WIDTH] = new_val;
-            ch8->V[0xF] |= ~new_val & old_val;
+            flag |= ~new_val & old_val;
         }
     }
+
+    ch8->V[0xF] = flag;
 
     return CHIP8_OK;
 }
@@ -876,16 +898,28 @@ chip8_err_t __LD_VX_DT(chip8_t *ch8, uint8_t x)
  */
 chip8_err_t __LD_VX_K(chip8_t *ch8, uint8_t x)
 {
+    uint8_t pressed = 0;
+
     for (uint8_t i = 0; i < CHIP8_KEYS_SIZE; ++i)
     {
-        if (ch8->keys[i] == 1)
+        if (ch8->keys[i])
         {
             ch8->V[x] = ch8->keys[i];
-            return CHIP8_OK;
+            pressed = 1;
+            break;
         }
     }
 
-    ch8->PC -= sizeof(uint16_t);
+    if (!pressed && ch8->pressed)
+    {
+        ch8->pressed = 0;
+    }
+    else
+    {
+        ch8->pressed = pressed;
+        ch8->PC -= sizeof(uint16_t);
+    }
+
     return CHIP8_OK;
 }
 
@@ -966,7 +1000,7 @@ chip8_err_t __LD_F_VX(chip8_t *ch8, uint8_t x)
 /**
  * @brief Store BCD representation of Vx in memory locations I, I+1, and I+2
  * [FX33]
- *
+ * 
  * @details The interpreter takes the decimal value of Vx, and places the
  * hundreds digit in memory at location in I, the tens digit at location I+1,
  * and the ones digit at location I+2.

@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <time.h>
 
 #include <raylib.h>
 
@@ -14,7 +15,6 @@
 #define WINDOW_ZOOM 10
 #define WINDOW_WIDTH (CHIP8_DISPLAY_WIDTH * WINDOW_ZOOM)
 #define WINDOW_HEIGHT (CHIP8_DISPLAY_HEIGHT * WINDOW_ZOOM)
-#define TARGET_FPS 120
 
 /* Function definitions ----------------------------------------------------- */
 
@@ -31,7 +31,8 @@ void platform_draw_screen(uint8_t *display)
                 y * WINDOW_ZOOM,
                 WINDOW_ZOOM,
                 WINDOW_ZOOM,
-                (display[x + y * CHIP8_DISPLAY_WIDTH]) ? WHITE : BLACK);
+                (display[x + y * CHIP8_DISPLAY_WIDTH]) ? WHITE : BLACK
+            );
         }
     }
 
@@ -41,10 +42,10 @@ void platform_draw_screen(uint8_t *display)
 void platform_read_keys(uint8_t *keys)
 {
     static const int raylib_keys[] = {
-        KEY_ONE, KEY_TWO, KEY_THREE, KEY_FOUR, // 1, 2, 3, C
-        KEY_Q,   KEY_W,   KEY_E,     KEY_R,    // 4, 5, 6, D
-        KEY_A,   KEY_S,   KEY_D,     KEY_F,    // 7, 8, 9, E
-        KEY_Z,   KEY_X,   KEY_C,     KEY_V,    // A, 0, B, F
+        KEY_ZERO,  KEY_ONE, KEY_TWO,  KEY_THREE,
+        KEY_FOUR,  KEY_FIVE, KEY_SIX, KEY_SEVEN,
+        KEY_EIGHT, KEY_NINE, KEY_A,   KEY_B,
+        KEY_C,     KEY_D,    KEY_E,   KEY_F
     };
 
     memset(keys, 0x0, sizeof(uint8_t) * CHIP8_KEYS_SIZE);
@@ -58,7 +59,7 @@ int main(int argc, char **argv)
     if (argc < 2)
     {
         fprintf(stdout, "Usage: %s <rom>\n", argv[0]);
-        exit(0);
+        exit(1);
     }
 
     FILE *rom = fopen(argv[1], "rb");
@@ -70,21 +71,32 @@ int main(int argc, char **argv)
 
     chip8_cfg_t chip8_cfg = {
         .rom = rom,
-        .addr = CHIP8_RAM_PROGRAM};
+        .addr = CHIP8_RAM_PROGRAM
+    };
 
     chip8_t chip8;
     chip8_init(&chip8, &chip8_cfg);
     fclose(rom);
 
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Chip8 Emulator");
-    SetTargetFPS(TARGET_FPS);
+    SetTargetFPS(CHIP8_CLOCK_HZ);
 
+    clock_t t0 = clock();
     chip8_err_t err = CHIP8_OK;
     while (!WindowShouldClose() && !err)
     {
         platform_read_keys(chip8.keys);
+
         err = chip8_run(&chip8);
+
         platform_draw_screen(chip8.display);
+
+        clock_t t1 = clock();
+        if ((t1 - t0) >= (CLOCKS_PER_SEC / CHIP8_TIMER_HZ))
+        {
+            err = chip8_tick(&chip8);
+            t0 = t1;
+        }
     }
 
     return (err == CHIP8_EXIT);

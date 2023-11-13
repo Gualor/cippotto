@@ -10,6 +10,10 @@
 
 /* Definitions -------------------------------------------------------------- */
 
+// Frequencies
+#define CHIP8_CLOCK_HZ 500
+#define CHIP8_TIMER_HZ 60
+
 // Memory
 #define CHIP8_REGS_NUM 16
 #define CHIP8_STACK_SIZE 16
@@ -73,12 +77,14 @@ typedef struct
     uint8_t keys[CHIP8_KEYS_SIZE];       // IO keys states
     uint8_t display[CHIP8_DISPLAY_SIZE]; // Display buffer
     char decoded[CHIP8_DECODE_SIZE];     // Decoded opcode string size
+    uint8_t pressed;                     // Key pressed flag
 } chip8_t;
 
 /* Function prototypes ------------------------------------------------------ */
 
 chip8_err_t chip8_init(chip8_t *ch8, chip8_cfg_t *cfg);
 chip8_err_t chip8_run(chip8_t *ch8);
+chip8_err_t chip8_tick(chip8_t *ch8);
 
 #endif /* __CHIP8__ */
 
