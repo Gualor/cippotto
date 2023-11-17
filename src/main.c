@@ -42,7 +42,7 @@ void platform_draw_screen(uint8_t *display)
 void platform_read_keys(uint8_t *keys)
 {
     static const int raylib_keys[] = {
-        KEY_ZERO,  KEY_ONE, KEY_TWO,  KEY_THREE,
+        KEY_ZERO,  KEY_ONE,  KEY_TWO, KEY_THREE,
         KEY_FOUR,  KEY_FIVE, KEY_SIX, KEY_SEVEN,
         KEY_EIGHT, KEY_NINE, KEY_A,   KEY_B,
         KEY_C,     KEY_D,    KEY_E,   KEY_F
@@ -81,22 +81,13 @@ int main(int argc, char **argv)
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Chip8 Emulator");
     SetTargetFPS(CHIP8_CLOCK_HZ);
 
-    clock_t t0 = clock();
     chip8_err_t err = CHIP8_OK;
     while (!WindowShouldClose() && !err)
     {
-        platform_read_keys(chip8.keys);
-
         err = chip8_run(&chip8);
 
+        platform_read_keys(chip8.keys);
         platform_draw_screen(chip8.display);
-
-        clock_t t1 = clock();
-        if ((t1 - t0) >= (CLOCKS_PER_SEC / CHIP8_TIMER_HZ))
-        {
-            err = chip8_tick(&chip8);
-            t0 = t1;
-        }
     }
 
     return (err == CHIP8_EXIT);

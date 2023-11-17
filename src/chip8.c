@@ -113,6 +113,15 @@ chip8_err_t chip8_run(chip8_t *ch8)
     // Update program counter
     ch8->PC += sizeof(uint16_t);
 
+    // Update timers
+    if ((ch8->cycles++ % CHIP8_CLOCK_TIMER_RATIO) == 0)
+    {
+        if (ch8->DT > 0)
+            --ch8->DT;
+        if (ch8->ST > 0)
+            --ch8->ST;
+    }
+
     // Parse opcode
     uint16_t O = (opcode & 0xF000);
     uint16_t NNN = (opcode & 0x0FFF);
@@ -296,24 +305,6 @@ chip8_err_t chip8_run(chip8_t *ch8)
     default:
         return CHIP8_INVALID_CMD;
     }
-
-    return CHIP8_OK;
-}
-
-/**
- * @brief Decrement delay and sound timers by 1, this function should be called
- * 60 times per second (i.e., 60 Hz)
- * 
- * @param ch8 Chip8 instance
- * @return chip8_err_t
- */
-chip8_err_t chip8_tick(chip8_t *ch8)
-{
-    if (ch8->DT > 0)
-        --ch8->DT;
-
-    if (ch8->ST > 0)
-        --ch8->ST;
 
     return CHIP8_OK;
 }
@@ -543,7 +534,7 @@ chip8_err_t __LD_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
 chip8_err_t __OR_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
 {
     ch8->V[x] |= ch8->V[y];
-    ch8->V[0xF] = 0; ///////////////////////////////////////////////////////////
+    ch8->V[0xF] = 0;
 
     return CHIP8_OK;
 }
@@ -565,7 +556,7 @@ chip8_err_t __OR_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
 chip8_err_t __AND_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
 {
     ch8->V[x] &= ch8->V[y];
-    ch8->V[0xF] = 0; ///////////////////////////////////////////////////////////
+    ch8->V[0xF] = 0;
 
     return CHIP8_OK;
 }
@@ -587,7 +578,7 @@ chip8_err_t __AND_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
 chip8_err_t __XOR_VX_VY(chip8_t *ch8, uint8_t x, uint8_t y)
 {
     ch8->V[x] ^= ch8->V[y];
-    ch8->V[0xF] = 0; ///////////////////////////////////////////////////////////
+    ch8->V[0xF] = 0;
 
     return CHIP8_OK;
 }
@@ -810,10 +801,11 @@ chip8_err_t __DRW_VX_VY_N(chip8_t *ch8, uint8_t x, uint8_t y, uint8_t n)
             if (x >= CHIP8_DISPLAY_WIDTH)
                 continue;
 
-            uint8_t old_val = ch8->display[x + y * CHIP8_DISPLAY_WIDTH];
+            uint16_t idx = x + y * CHIP8_DISPLAY_WIDTH;
+            uint8_t old_val = ch8->display[idx];
             uint8_t new_val = old_val ^ (ch8->ram[ch8->I + h] & (1 << (7 - w)));
 
-            ch8->display[x + y * CHIP8_DISPLAY_WIDTH] = new_val;
+            ch8->display[idx] = new_val;
             flag |= ~new_val & old_val;
         }
     }
