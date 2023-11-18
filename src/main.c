@@ -69,13 +69,13 @@ int main(int argc, char **argv)
         exit(1);
     }
 
+    chip8_t chip8;
     chip8_cfg_t chip8_cfg = {
         .rom = rom,
         .addr = CHIP8_RAM_PROGRAM
     };
+    chip8_init(&chip8, chip8_cfg);
 
-    chip8_t chip8;
-    chip8_init(&chip8, &chip8_cfg);
     fclose(rom);
 
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Chip8 Emulator");

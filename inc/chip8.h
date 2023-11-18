@@ -35,11 +35,75 @@
 // Keypad
 #define CHIP8_KEYS_SIZE 16
 
-// Opcode debug
-#define CHIP8_DECODE_SIZE 50
+// Decode string
+#define CHIP8_DECODE_STR_SIZE 50
 
 /* Data types --------------------------------------------------------------- */
 
+/**
+ * @brief Chip-8 RAM addresses
+ *
+ */
+typedef enum
+{
+    CHIP8_RAM_START   = 0x000,
+    CHIP8_RAM_PROGRAM = 0x200,
+    CHIP8_RAM_ETI_660 = 0x600,
+    CHIP8_RAM_END     = 0xFFF,
+} chip8_ram_t;
+
+/**
+ * @brief Chip-8 configurations
+ *
+ */
+typedef struct
+{
+    FILE *rom;
+    chip8_ram_t addr;
+} chip8_cfg_t;
+
+/**
+ * @brief Chip-8 data structure
+ *
+ */
+typedef struct
+{
+    /* Registers */
+    uint8_t V[CHIP8_REGS_NUM];           // General purpose registers
+    uint8_t DT;                          // Delay timer register
+    uint8_t ST;                          // Sound timer register
+    uint16_t I;                          // Index register
+    uint16_t PC;                         // Program counter register
+    uint16_t SP;                         // Stack pointer register
+    /* Stack */
+    uint16_t stack[CHIP8_STACK_SIZE];    // Stack to store return addresses
+    /* RAM */
+    uint8_t ram[CHIP8_RAM_SIZE];         // RAM memory (program + data)
+    /* IO */
+    uint32_t cycles;                     // CPU cycles counter
+    uint8_t pressed;                     // Key pressed flag
+    uint8_t keys[CHIP8_KEYS_SIZE];       // Keys states
+    uint8_t display[CHIP8_DISPLAY_SIZE]; // Display buffer
+} chip8_t;
+
+/**
+ * @brief Chip-8 parsed opcode
+ *
+ */
+typedef struct
+{
+    uint16_t o   : 16;
+    uint16_t nnn : 12;
+    uint8_t nn   : 8;
+    uint8_t n    : 4;
+    uint8_t x    : 4;
+    uint8_t y    : 4;
+} chip8_op_t;
+
+/**
+ * @brief Chip-8 API error code
+ *
+ */
 typedef enum
 {
     CHIP8_OK,
@@ -51,41 +115,19 @@ typedef enum
     CHIP8_STACK_OVERFLOW,
 } chip8_err_t;
 
-typedef enum
-{
-    CHIP8_RAM_START   = 0x000,
-    CHIP8_RAM_PROGRAM = 0x200,
-    CHIP8_RAM_ETI_660 = 0x600,
-    CHIP8_RAM_END     = 0xFFF,
-} chip8_ram_t;
-
-typedef struct
-{
-    FILE *rom;
-    chip8_ram_t addr;
-} chip8_cfg_t;
-
-typedef struct
-{
-    uint8_t V[CHIP8_REGS_NUM];           // General purpose registers
-    uint8_t DT;                          // Delay timer register
-    uint8_t ST;                          // Sound timer register
-    uint16_t I;                          // Index register
-    uint16_t PC;                         // Program counter register
-    uint16_t SP;                         // Stack pointer register
-    uint16_t stack[CHIP8_STACK_SIZE];    // Stack to store return addresses
-    uint8_t ram[CHIP8_RAM_SIZE];         // RAM memory map
-    uint8_t keys[CHIP8_KEYS_SIZE];       // IO keys states
-    uint8_t display[CHIP8_DISPLAY_SIZE]; // Display buffer
-    char decoded[CHIP8_DECODE_SIZE];     // Decoded opcode string size
-    uint32_t cycles;                     // CPU cycles counter
-    uint8_t pressed;                     // Key pressed flag
-} chip8_t;
+/**
+ * @brief Chip-8 command pointer
+ *
+ */
+typedef chip8_err_t (*chip8_cmd_t)(chip8_t *, chip8_op_t);
 
 /* Function prototypes ------------------------------------------------------ */
 
-chip8_err_t chip8_init(chip8_t *ch8, chip8_cfg_t *cfg);
+chip8_err_t chip8_init(chip8_t *ch8, chip8_cfg_t cfg);
 chip8_err_t chip8_run(chip8_t *ch8);
+chip8_err_t chip8_fetch(chip8_t *ch8, chip8_op_t *op);
+chip8_err_t chip8_decode(chip8_cmd_t *cmd, char *str, chip8_op_t op);
+chip8_err_t chip8_execute(chip8_t *ch8, chip8_cmd_t cmd, chip8_op_t op);
 
 #endif /* __CHIP8__ */
 
