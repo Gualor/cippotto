@@ -861,29 +861,32 @@ chip8_err_t __RND_VX_NN(chip8_t *ch8, chip8_op_t op)
  */
 chip8_err_t __DRW_VX_VY_N(chip8_t *ch8, chip8_op_t op)
 {
+    uint8_t flag = 0;
     uint8_t start_x = ch8->V[op.x] % CHIP8_DISPLAY_WIDTH;
     uint8_t start_y = ch8->V[op.y] % CHIP8_DISPLAY_HEIGHT;
 
-    uint8_t flag = 0;
-
     for (uint8_t h = 0; h < op.n; ++h)
     {
-        uint8_t y = start_y + h;
+        uint8_t sprite = ch8->ram[ch8->I + h];
+
+        uint16_t y = start_y + h;
         if (y >= CHIP8_DISPLAY_HEIGHT)
             break;
 
         for (uint8_t w = 0; w < 8; ++w)
         {
-            uint8_t x = start_x + w;
+            uint16_t x = start_x + w;
             if (x >= CHIP8_DISPLAY_WIDTH)
                 continue;
 
-            uint16_t idx = x + y * CHIP8_DISPLAY_WIDTH;
-            uint8_t old_val = ch8->display[idx];
-            uint8_t new_val = old_val ^ (ch8->ram[ch8->I + h] & (1 << (7 - w)));
+            uint16_t offset = x + (y * CHIP8_DISPLAY_WIDTH);
+            uint8_t old_val = ch8->display[offset];
+            uint8_t new_val = old_val ^ ((sprite & 0x80) >> 7);
 
-            ch8->display[idx] = new_val;
+            ch8->display[offset] = new_val;
             flag |= ~new_val & old_val;
+
+            sprite <<= 1;
         }
     }
 
