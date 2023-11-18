@@ -704,7 +704,7 @@ chip8_err_t __ADD_VX_VY(chip8_t *ch8, chip8_op_t op)
  */
 chip8_err_t __SUB_VX_VY(chip8_t *ch8, chip8_op_t op)
 {
-    uint8_t flag = (ch8->V[op.x] > ch8->V[op.y]) ? 1 : 0;
+    uint8_t flag = ch8->V[op.x] >= ch8->V[op.y];
     ch8->V[op.x] -= ch8->V[op.y];
     ch8->V[0xF] = flag;
 
@@ -724,7 +724,7 @@ chip8_err_t __SUB_VX_VY(chip8_t *ch8, chip8_op_t op)
  */
 chip8_err_t __SHR_VX_VY(chip8_t *ch8, chip8_op_t op)
 {
-    uint8_t flag = (ch8->V[op.y] & 0x1) ? 1 : 0;
+    uint8_t flag = ch8->V[op.y] & 0x1;
     ch8->V[op.x] = ch8->V[op.y] >> 1;
     ch8->V[0xF] = flag;
 
@@ -744,7 +744,7 @@ chip8_err_t __SHR_VX_VY(chip8_t *ch8, chip8_op_t op)
  */
 chip8_err_t __SUBN_VX_VY(chip8_t *ch8, chip8_op_t op)
 {
-    uint8_t flag = (ch8->V[op.y] > ch8->V[op.x]) ? 1 : 0;
+    uint8_t flag = ch8->V[op.y] >= ch8->V[op.x];
     ch8->V[op.x] = ch8->V[op.y] - ch8->V[op.x];
     ch8->V[0xF] = flag;
 
@@ -764,7 +764,7 @@ chip8_err_t __SUBN_VX_VY(chip8_t *ch8, chip8_op_t op)
  */
 chip8_err_t __SHL_VX_VY(chip8_t *ch8, chip8_op_t op)
 {
-    uint8_t flag = (ch8->V[op.y] & 0x80) ? 1 : 0;
+    uint8_t flag = (ch8->V[op.y] & 0x80) >> 7;
     ch8->V[op.x] = ch8->V[op.y] << 1;
     ch8->V[0xF] = flag;
 
