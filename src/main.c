@@ -9,6 +9,7 @@
 #include <raylib.h>
 
 #include "chip8.h"
+#include "gui.h"
 
 /* Definitions -------------------------------------------------------------- */
 
@@ -17,27 +18,6 @@
 #define WINDOW_HEIGHT (CHIP8_DISPLAY_HEIGHT * WINDOW_ZOOM)
 
 /* Function definitions ----------------------------------------------------- */
-
-void platform_draw_screen(uint8_t *display)
-{
-    BeginDrawing();
-
-    for (uint8_t x = 0; x < CHIP8_DISPLAY_WIDTH; ++x)
-    {
-        for (uint8_t y = 0; y < CHIP8_DISPLAY_HEIGHT; ++y)
-        {
-            DrawRectangle(
-                x * WINDOW_ZOOM,
-                y * WINDOW_ZOOM,
-                WINDOW_ZOOM,
-                WINDOW_ZOOM,
-                (display[x + y * CHIP8_DISPLAY_WIDTH]) ? WHITE : BLACK
-            );
-        }
-    }
-
-    EndDrawing();
-}
 
 void platform_read_keys(uint8_t *keys)
 {
@@ -78,7 +58,7 @@ int main(int argc, char **argv)
 
     fclose(rom);
 
-    InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Chip8 Emulator");
+    InitWindow(GUI_WINDOW_WIDTH, GUI_WINDOW_HEIGHT, "Chip8 Debugger");
     SetTargetFPS(CHIP8_CLOCK_HZ);
 
     chip8_err_t err = CHIP8_OK;
@@ -87,7 +67,7 @@ int main(int argc, char **argv)
         err = chip8_run(&chip8);
 
         platform_read_keys(chip8.keys);
-        platform_draw_screen(chip8.display);
+        gui_draw(&chip8);
     }
 
     return (err == CHIP8_EXIT);

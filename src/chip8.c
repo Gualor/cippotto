@@ -1106,8 +1106,6 @@ chip8_err_t __LD_B_VX(chip8_t *ch8, chip8_op_t op)
  */
 chip8_err_t __LD_I_VX(chip8_t *ch8, chip8_op_t op)
 {
-    /** NOTE: Increment I instead of index in order to run COSMAC VIP games
-     *  uint8_t index = ch8->I; */
     for (uint8_t i = 0; i <= op.x; ++i)
         ch8->ram[ch8->I++] = ch8->V[i];
 
@@ -1127,8 +1125,6 @@ chip8_err_t __LD_I_VX(chip8_t *ch8, chip8_op_t op)
  */
 chip8_err_t __LD_VX_I(chip8_t *ch8, chip8_op_t op)
 {
-    /** NOTE: Increment I instead of index in order to run COSMAC VIP games
-     *  uint8_t index = ch8->I; */
     for (uint8_t i = 0; i <= op.x; ++i)
         ch8->V[i] = ch8->ram[ch8->I++];
 
