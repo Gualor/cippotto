@@ -13,7 +13,7 @@
 
 /* Definitions -------------------------------------------------------------- */
 
-#define WINDOW_WIDTH  1232
+#define WINDOW_WIDTH  1520
 #define WINDOW_HEIGHT 552
 
 #define LAYOUT_GROUP_REGISTERS 0
@@ -26,12 +26,14 @@
 #define LAYOUT_VALUE_PC        22
 #define LAYOUT_VALUE_SP        23
 #define LAYOUT_GROUP_GAME      24
+#define LAYOUT_GROUP_ASM       25
 
 /* Function Prototypes ------------------------------------------------------ */
 
 static void UpdateRegValue(char *text, void *reg, int size, int *value, bool *edit, Rectangle rec);
 static void UpdateRegsView(chip8_t *ch8);
-static void DrawGameView(chip8_t *ch8);
+static void UpdateGameView(chip8_t *ch8);
+static void UpdateASMView(chip8_t *ch8);
 static void ReadInputKeys(chip8_t *ch8);
 
 /* Global variables --------------------------------------------------------- */
@@ -56,31 +58,32 @@ static const int raylib_keys[] = {
 };
 
 static const Rectangle layout[] = {
-    (Rectangle){  24,  24, 264, 504 }, // GroupBox: registers
-    (Rectangle){  72,  48,  72,  24 }, // ValueBox: V0
-    (Rectangle){  72,  80,  72,  24 }, // ValueBox: V1
-    (Rectangle){  72, 112,  72,  24 }, // ValueBox: V2
-    (Rectangle){  72, 144,  72,  24 }, // ValueBox: V3
-    (Rectangle){  72, 176,  72,  24 }, // ValueBox: V4
-    (Rectangle){  72, 208,  72,  24 }, // ValueBox: V5
-    (Rectangle){  72, 240,  72,  24 }, // ValueBox: V6
-    (Rectangle){  72, 272,  72,  24 }, // ValueBox: V7
-    (Rectangle){ 192,  48,  72,  24 }, // ValueBox: V8
-    (Rectangle){ 192,  80,  72,  24 }, // ValueBox: V9
-    (Rectangle){ 192, 112,  72,  24 }, // ValueBox: VA
-    (Rectangle){ 192, 144,  72,  24 }, // ValueBox: VB
-    (Rectangle){ 192, 176,  72,  24 }, // ValueBox: VC
-    (Rectangle){ 192, 208,  72,  24 }, // ValueBox: VD
-    (Rectangle){ 192, 240,  72,  24 }, // ValueBox: VE
-    (Rectangle){ 192, 272,  72,  24 }, // ValueBox: VF
-    (Rectangle){  48, 312, 216,  16 }, // Line:     timers
-    (Rectangle){  72, 344,  72,  24 }, // ValueBox: DT
-    (Rectangle){ 192, 344,  72,  24 }, // ValueBox: ST
-    (Rectangle){  48, 384, 216,  16 }, // Line:     special
-    (Rectangle){  72, 416,  72,  24 }, // ValueBox: I
-    (Rectangle){  72, 448,  72,  24 }, // ValueBox: PC
-    (Rectangle){  72, 480,  72,  24 }, // ValueBox: SP
-    (Rectangle){ 312,  24, 896, 504 }, // GroupBox: game
+    (Rectangle){   24,  24, 264, 504 }, // GroupBox: Registers
+    (Rectangle){   72,  48,  72,  24 }, // ValueBox: V0
+    (Rectangle){   72,  80,  72,  24 }, // ValueBox: V1
+    (Rectangle){   72, 112,  72,  24 }, // ValueBox: V2
+    (Rectangle){   72, 144,  72,  24 }, // ValueBox: V3
+    (Rectangle){   72, 176,  72,  24 }, // ValueBox: V4
+    (Rectangle){   72, 208,  72,  24 }, // ValueBox: V5
+    (Rectangle){   72, 240,  72,  24 }, // ValueBox: V6
+    (Rectangle){   72, 272,  72,  24 }, // ValueBox: V7
+    (Rectangle){  192,  48,  72,  24 }, // ValueBox: V8
+    (Rectangle){  192,  80,  72,  24 }, // ValueBox: V9
+    (Rectangle){  192, 112,  72,  24 }, // ValueBox: VA
+    (Rectangle){  192, 144,  72,  24 }, // ValueBox: VB
+    (Rectangle){  192, 176,  72,  24 }, // ValueBox: VC
+    (Rectangle){  192, 208,  72,  24 }, // ValueBox: VD
+    (Rectangle){  192, 240,  72,  24 }, // ValueBox: VE
+    (Rectangle){  192, 272,  72,  24 }, // ValueBox: VF
+    (Rectangle){   48, 312, 216,  16 }, // Line:     Timers
+    (Rectangle){   72, 344,  72,  24 }, // ValueBox: DT
+    (Rectangle){  192, 344,  72,  24 }, // ValueBox: ST
+    (Rectangle){   48, 384, 216,  16 }, // Line:     Special
+    (Rectangle){   72, 416,  72,  24 }, // ValueBox: I
+    (Rectangle){   72, 448,  72,  24 }, // ValueBox: PC
+    (Rectangle){   72, 480,  72,  24 }, // ValueBox: SP
+    (Rectangle){  312,  24, 896, 504 }, // GroupBox: Game
+    (Rectangle){ 1232,  24, 264, 504 }, // GroupBox: Assembly
 };
 
 static Color background_color = BLACK;
@@ -145,7 +148,7 @@ void UpdateRegsView(chip8_t *ch8)
     UpdateRegValue("SP ", &ch8->SP, sizeof(uint16_t), &SP_value, &SP_edit, layout[LAYOUT_VALUE_SP]);
 }
 
-void DrawGameView(chip8_t *ch8)
+void UpdateGameView(chip8_t *ch8)
 {
     Rectangle rect = layout[LAYOUT_GROUP_GAME];
     float scale_x = rect.width / CHIP8_DISPLAY_WIDTH;
@@ -167,7 +170,12 @@ void DrawGameView(chip8_t *ch8)
         }
     }
 
-    GuiGroupBox(layout[LAYOUT_GROUP_GAME], "Game");
+    GuiGroupBox(rect, "Game");
+}
+
+void UpdateASMView(chip8_t *ch8)
+{
+    GuiGroupBox(layout[LAYOUT_GROUP_ASM], "Assembly");
 }
 
 void ReadInputKeys(chip8_t *ch8)
@@ -214,7 +222,8 @@ int main(int argc, char **argv)
         ClearBackground(background_color);
         ReadInputKeys(&chip8);
         UpdateRegsView(&chip8);
-        DrawGameView(&chip8);
+        UpdateGameView(&chip8);
+        UpdateASMView(&chip8);
         EndDrawing();
     }
 
