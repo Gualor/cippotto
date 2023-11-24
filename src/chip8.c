@@ -109,13 +109,13 @@ chip8_err_t chip8_run(chip8_t *ch8)
     chip8_err_t err;
     chip8_op_t op;
     chip8_cmd_t cmd;
-    char cmd_str[CHIP8_DECODE_STR_SIZE];
+    static char str[CHIP8_DECODE_STR_SIZE];
 
     err = chip8_fetch(ch8, &op);
     if (err)
         return err;
 
-    err = chip8_decode(&cmd, cmd_str, op);
+    err = chip8_decode(&cmd, str, op);
     if (err)
         return err;
 
@@ -123,7 +123,24 @@ chip8_err_t chip8_run(chip8_t *ch8)
     if (err)
         return err;
 
-    printf("%s\n", cmd_str);
+    return CHIP8_OK;
+}
+
+/**
+ * @brief Parse a Chip-8 opcode
+ * 
+ * @param op  Parsed opcode
+ * @param raw Raw opcode
+ * @return    Error code
+ */
+chip8_err_t chip8_parse(chip8_op_t *op, uint16_t raw)
+{
+    op->o = (raw & 0xF000);
+    op->nnn = (raw & 0x0FFF);
+    op->nn = (raw & 0x00FF);
+    op->n = (raw & 0x000F);
+    op->x = (op->nnn >> 8);
+    op->y = (op->nn >> 4);
 
     return CHIP8_OK;
 }
@@ -141,12 +158,7 @@ chip8_err_t chip8_fetch(chip8_t *ch8, chip8_op_t *op)
     uint16_t raw = ((uint16_t)ch8->ram[ch8->PC] << 8) | ch8->ram[ch8->PC + 1];
 
     // Parse opcode
-    op->o = (raw & 0xF000);
-    op->nnn = (raw & 0x0FFF);
-    op->nn = (raw & 0x00FF);
-    op->n = (raw & 0x000F);
-    op->x = (op->nnn >> 8);
-    op->y = (op->nn >> 4);
+    chip8_parse(op, raw);
 
     // Update program counter
     ch8->PC += sizeof(uint16_t);
