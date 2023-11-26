@@ -16,6 +16,7 @@
 /* Function Prototypes ------------------------------------------------------ */
 
 static void InitCippottoGui(void);
+static void UpdateCippottoGui(chip8_t *ch8);
 static void ReadInputKeys(chip8_t *ch8);
 static void UpdateRegsView(chip8_t *ch8);
 static void UpdateRegValue(char *text, void *reg, int size, int *value,
@@ -50,10 +51,12 @@ static int SP_value = 0;
 static bool SP_edit = false;
 
 // ScrollPanel: Assembly
-static char ops_buffer[GUI_OPS_BUFFER_LEN][CHIP8_DECODE_STR_SIZE] = {0};
-static int ops_counter = 0;
-static Rectangle ops_view = {0};
-static Vector2 ops_scroll = {0, 0};
+static char asm_buffer[GUI_ASM_BUFFER_LEN][CHIP8_DECODE_STR_SIZE] = {0};
+static int asm_counter = 0;
+static int asm_head = 0;
+static Rectangle asm_content = {0};
+static Rectangle asm_view = {0};
+static Vector2 asm_scroll = {0, 0};
 
 // Style colors
 static Color background_color = {0};
@@ -62,7 +65,35 @@ static Color border_color[4] = {0};
 static Color base_color[4] = {0};
 static Color text_color[4] = {0};
 
+// CLI arguments
+static char *rom_path = NULL;
+static int rom_addr = CHIP8_RAM_PROGRAM;
+
 /* Function definitions ----------------------------------------------------- */
+
+void UpdateRegsView(chip8_t *ch8)
+{
+    GuiGroupBox(gui_layout[LAYOUT_REGS], "Registers");
+    for (uint8_t i = 0; i < CHIP8_REGS_NUM; ++i)
+    {
+        char Vi[5];
+        sprintf(Vi, "V%X ", i);
+        UpdateRegValue(Vi, &ch8->V[i], sizeof(uint8_t), &Vi_value[i],
+                       &Vi_edit[i], gui_layout[LAYOUT_V0 + i]);
+    }
+    GuiLine(gui_layout[LAYOUT_TIM], NULL);
+    UpdateRegValue("DT ", &ch8->DT, sizeof(uint8_t), &DT_value, &DT_edit,
+                   gui_layout[LAYOUT_DT]);
+    UpdateRegValue("ST ", &ch8->ST, sizeof(uint8_t), &ST_value, &ST_edit,
+                   gui_layout[LAYOUT_ST]);
+    GuiLine(gui_layout[LAYOUT_SPE], NULL);
+    UpdateRegValue("I ", &ch8->I, sizeof(uint16_t), &I_value, &I_edit,
+                   gui_layout[LAYOUT_I]);
+    UpdateRegValue("PC ", &ch8->PC, sizeof(uint16_t), &PC_value, &PC_edit,
+                   gui_layout[LAYOUT_PC]);
+    UpdateRegValue("SP ", &ch8->SP, sizeof(uint16_t), &SP_value, &SP_edit,
+                   gui_layout[LAYOUT_SP]);
+}
 
 void UpdateRegValue(char *text, void *reg, int size, int *value, bool *edit,
                     Rectangle rec)
@@ -80,35 +111,11 @@ void UpdateRegValue(char *text, void *reg, int size, int *value, bool *edit,
     }
 }
 
-void UpdateRegsView(chip8_t *ch8)
-{
-    GuiGroupBox(layout[LAYOUT_REGS], "Registers");
-    for (uint8_t i = 0; i < CHIP8_REGS_NUM; ++i)
-    {
-        char Vi[5];
-        sprintf(Vi, "V%X ", i);
-        UpdateRegValue(Vi, &ch8->V[i], sizeof(uint8_t), &Vi_value[i],
-                       &Vi_edit[i], layout[LAYOUT_V0 + i]);
-    }
-    GuiLine(layout[LAYOUT_TIM], NULL);
-    UpdateRegValue("DT ", &ch8->DT, sizeof(uint8_t), &DT_value, &DT_edit,
-                   layout[LAYOUT_DT]);
-    UpdateRegValue("ST ", &ch8->ST, sizeof(uint8_t), &ST_value, &ST_edit,
-                   layout[LAYOUT_ST]);
-    GuiLine(layout[LAYOUT_SPE], NULL);
-    UpdateRegValue("I ", &ch8->I, sizeof(uint16_t), &I_value, &I_edit,
-                   layout[LAYOUT_I]);
-    UpdateRegValue("PC ", &ch8->PC, sizeof(uint16_t), &PC_value, &PC_edit,
-                   layout[LAYOUT_PC]);
-    UpdateRegValue("SP ", &ch8->SP, sizeof(uint16_t), &SP_value, &SP_edit,
-                   layout[LAYOUT_SP]);
-}
-
 void UpdateGameView(chip8_t *ch8)
 {
-    GuiGroupBox(layout[LAYOUT_GAME], GUI_GAME_TITLE);
+    GuiGroupBox(gui_layout[LAYOUT_GAME], GUI_GAME_TITLE);
 
-    Rectangle panel = layout[LAYOUT_DRAW];
+    Rectangle panel = gui_layout[LAYOUT_DRAW];
     float scale_x = panel.width / CHIP8_DISPLAY_WIDTH;
     float scale_y = panel.height / CHIP8_DISPLAY_HEIGHT;
 
@@ -131,48 +138,58 @@ void UpdateGameView(chip8_t *ch8)
 
 void UpdateASMView(chip8_t *ch8)
 {
-    Rectangle panel = layout[LAYOUT_ASM];
-    Rectangle content = layout[LAYOUT_OPS];
+    Rectangle panel = gui_layout[LAYOUT_ASM];
 
-    float pos_x = panel.x + ops_scroll.x + GUI_GRID_SPACING;
-    float pos_y = panel.y + ops_scroll.y + GUI_GRID_SPACING;
+    GuiScrollPanel(panel, NULL, asm_content, &asm_scroll, &asm_view);
+    BeginScissorMode(asm_view.x, asm_view.y, asm_view.width, asm_view.height);
 
-    GuiScrollPanel(panel, NULL, content, &ops_scroll, &ops_view);
-    DrawRectangleRec((Rectangle){panel.x + 8, panel.y, 67, 1}, background_color);
-    GuiGroupBox(panel, GUI_ASM_TITLE);
+    uint16_t raw = ((uint16_t)ch8->ram[ch8->PC] << 8) | ch8->ram[ch8->PC + 1];
+    chip8_op_t op;
+    chip8_cmd_t cmd;
+    char cmd_str[CHIP8_DECODE_STR_SIZE];
 
-    BeginScissorMode(ops_view.x, ops_view.y, ops_view.width, ops_view.height);
+    chip8_parse(&op, raw);
+    chip8_decode(&cmd, cmd_str, op);
 
-    for (int i = 0; i < 25; ++i)
+    asm_head = (asm_head + 1) % GUI_ASM_BUFFER_LEN;
+    sprintf(asm_buffer[asm_head], "0x%04X\t%s", ch8->PC, cmd_str);
+    if (asm_counter < GUI_ASM_BUFFER_LEN)
     {
-        uint16_t PC = ch8->PC + (i * sizeof(uint16_t));
-        if (PC > CHIP8_RAM_END) break;
+        ++asm_counter;
+        if (asm_counter > GUI_ASM_TEXT_LINES)
+        {
+            asm_content.height += GUI_GRID_SPACING;
+            asm_scroll.y -= GUI_GRID_SPACING;
+        }
+    }
 
-        uint16_t raw = ((uint16_t)ch8->ram[PC] << 8) | ch8->ram[PC + 1];
-        chip8_op_t op;
-        chip8_cmd_t cmd;
-        chip8_err_t err;
-        static char addr_str[5];
+    float posx = panel.x + asm_scroll.x + GUI_GRID_SPACING;
+    float posy = panel.y + asm_scroll.y + asm_content.height - GUI_GRID_SPACING;
+    int idx = asm_head;
+    for (int i = 0; i < asm_counter; ++i)
+    {
+        DrawText(
+            asm_buffer[idx--],
+            posx,
+            posy - (GUI_GRID_SPACING * i),
+            GUI_ASM_FONT_SIZE,
+            (i == 0) ? text_color[2] : text_color[0]
+        );
 
-        sprintf(addr_str, "0x%04X", PC);
-        chip8_parse(&op, raw);
-        err = chip8_decode(&cmd, ops_buffer[i], op);
-        if (err) sprintf(ops_buffer[i], "UNKNOWN");
-
-        float text_y = pos_y + (i * 24);
-        Color color = (i == 0) ? text_color[2] : text_color[0];
-        DrawText(addr_str, pos_x, text_y, 18, color);
-        DrawText(ops_buffer[i], pos_x + 84, text_y, 18, color);
+        if (idx < 0) idx += GUI_ASM_BUFFER_LEN;
     }
 
     EndScissorMode();
+    DrawRectangleRec((Rectangle){panel.x, panel.y, panel.width - 14, 6},
+                     background_color);
+    GuiGroupBox(panel, GUI_ASM_TITLE);
 }
 
 void ReadInputKeys(chip8_t *ch8)
 {
     memset(ch8->keys, 0x0, sizeof(uint8_t) * CHIP8_KEYS_SIZE);
     for (uint8_t i = 0; i < CHIP8_KEYS_SIZE; ++i)
-        ch8->keys[i] = IsKeyDown(keys[i]);
+        ch8->keys[i] = IsKeyDown(gui_keys[i]);
 }
 
 void InitCippottoGui(void)
@@ -198,27 +215,44 @@ void InitCippottoGui(void)
     text_color[1] = GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_FOCUSED));
     text_color[2] = GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_PRESSED));
     text_color[3] = GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_DISABLED));
+
+    asm_content.x = 0;
+    asm_content.y = 0;
+    asm_content.width = gui_layout[LAYOUT_ASM].width - 15;
+    asm_content.height = gui_layout[LAYOUT_ASM].height;
+}
+
+void UpdateCippottoGui(chip8_t *ch8)
+{
+    BeginDrawing();
+    ClearBackground(background_color);
+    UpdateRegsView(ch8);
+    UpdateGameView(ch8);
+    UpdateASMView(ch8);
+    EndDrawing();
 }
 
 int main(int argc, char **argv)
 {
     if (argc < 2)
     {
-        fprintf(stdout, "Usage: %s <rom>\n", argv[0]);
+        fprintf(stderr, "Usage: %s <rom> <addr, optional>\n", argv[0]);
         exit(1);
     }
+    rom_path = argv[1];
+    if (argc > 2) rom_addr = atoi(argv[2]);
 
-    FILE *rom = fopen(argv[1], "rb");
+    FILE *rom = fopen(rom_path, "rb");
     if (rom == NULL)
     {
-        fprintf(stderr, "Error opening the ROM file: %s\n", argv[1]);
+        fprintf(stderr, "Error opening the ROM file: %s\n", rom_path);
         exit(1);
     }
 
     chip8_t chip8;
     chip8_cfg_t chip8_cfg = {
         .rom = rom,
-        .addr = CHIP8_RAM_PROGRAM,
+        .addr = rom_addr,
     };
     chip8_init(&chip8, chip8_cfg);
     fclose(rom);
@@ -226,15 +260,9 @@ int main(int argc, char **argv)
     InitCippottoGui();
     while (!WindowShouldClose() && !chip8_run(&chip8))
     {
-        BeginDrawing();
-        ClearBackground(background_color);
         ReadInputKeys(&chip8);
-        UpdateRegsView(&chip8);
-        UpdateGameView(&chip8);
-        UpdateASMView(&chip8);
-        EndDrawing();
+        UpdateCippottoGui(&chip8);
     }
-
     CloseWindow();
 
     return 0;

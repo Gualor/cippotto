@@ -291,6 +291,7 @@ chip8_err_t chip8_decode(chip8_cmd_t *cmd, char *str, chip8_op_t op)
             break;
 
         default:
+            sprintf(str, "UNKNOWN");
             return CHIP8_INVALID_CMD;
         }
         break;
@@ -334,6 +335,7 @@ chip8_err_t chip8_decode(chip8_cmd_t *cmd, char *str, chip8_op_t op)
             break;
 
         default:
+            sprintf(str, "UNKNOWN");
             return CHIP8_INVALID_CMD;
         }
         break;
@@ -387,11 +389,13 @@ chip8_err_t chip8_decode(chip8_cmd_t *cmd, char *str, chip8_op_t op)
             break;
 
         default:
+            sprintf(str, "UNKNOWN");
             return CHIP8_INVALID_CMD;
         }
         break;
 
     default:
+        sprintf(str, "UNKNOWN");
         return CHIP8_INVALID_CMD;
     }
 

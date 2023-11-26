@@ -147,54 +147,50 @@
 #define GUI_DRAW_WIDTH  (GUI_GAME_WIDTH - GUI_GRID_SPACING * (2))
 #define GUI_DRAW_HEIGHT (GUI_GAME_HEIGHT - GUI_GRID_SPACING * (2))
 
-#define GUI_ASM_TITLE  "Assembly"
-#define GUI_ASM_X      (GUI_GAME_X + GUI_GAME_WIDTH + GUI_GRID_SPACING)
-#define GUI_ASM_Y      (GUI_REGS_Y)
-#define GUI_ASM_WIDTH  (GUI_REGS_WIDTH)
-#define GUI_ASM_HEIGHT (GUI_REGS_HEIGHT)
-
-#define GUI_OPS_BUFFER_LEN 100
-#define GUI_OPS_X          0
-#define GUI_OPS_Y          0
-#define GUI_OPS_WIDTH      (GUI_REGS_WIDTH - 14)
-#define GUI_OPS_HEIGHT     (GUI_GRID_SPACING * (GUI_OPS_BUFFER_LEN + 2))
+#define GUI_ASM_TITLE      "Assembly"
+#define GUI_ASM_X          (GUI_GAME_X + GUI_GAME_WIDTH + GUI_GRID_SPACING)
+#define GUI_ASM_Y          (GUI_REGS_Y)
+#define GUI_ASM_WIDTH      (GUI_REGS_WIDTH)
+#define GUI_ASM_HEIGHT     (GUI_REGS_HEIGHT)
+#define GUI_ASM_TEXT_LINES ((GUI_ASM_HEIGHT / GUI_GRID_SPACING) - 2)
+#define GUI_ASM_FONT_SIZE  19
+#define GUI_ASM_BUFFER_LEN 100
 
 /* Data types --------------------------------------------------------------- */
 
 typedef enum {
-    LAYOUT_REGS, // GroupBox:    Registers
-    LAYOUT_V0,   // ValueBox:    V0
-    LAYOUT_V1,   // ValueBox:    V1
-    LAYOUT_V2,   // ValueBox:    V2
-    LAYOUT_V3,   // ValueBox:    V3
-    LAYOUT_V4,   // ValueBox:    V4
-    LAYOUT_V5,   // ValueBox:    V5
-    LAYOUT_V6,   // ValueBox:    V6
-    LAYOUT_V7,   // ValueBox:    V7
-    LAYOUT_V8,   // ValueBox:    V8
-    LAYOUT_V9,   // ValueBox:    V9
-    LAYOUT_VA,   // ValueBox:    VA
-    LAYOUT_VB,   // ValueBox:    VB
-    LAYOUT_VC,   // ValueBox:    VC
-    LAYOUT_VD,   // ValueBox:    VD
-    LAYOUT_VE,   // ValueBox:    VE
-    LAYOUT_VF,   // ValueBox:    VF
-    LAYOUT_TIM,  // Line:        Timers
-    LAYOUT_DT,   // ValueBox:    DT
-    LAYOUT_ST,   // ValueBox:    ST
-    LAYOUT_SPE,  // Line:        Special
-    LAYOUT_I,    // ValueBox:    I
-    LAYOUT_PC,   // ValueBox:    PC
-    LAYOUT_SP,   // ValueBox:    SP
-    LAYOUT_GAME, // GroupBox:    Game
-    LAYOUT_DRAW, // Panel:       Draw
-    LAYOUT_ASM,  // GroupBox:    Assembly
-    LAYOUT_OPS,  // ScrollPanel: Ops
+    LAYOUT_REGS, // GroupBox: Registers
+    LAYOUT_V0,   // ValueBox: V0
+    LAYOUT_V1,   // ValueBox: V1
+    LAYOUT_V2,   // ValueBox: V2
+    LAYOUT_V3,   // ValueBox: V3
+    LAYOUT_V4,   // ValueBox: V4
+    LAYOUT_V5,   // ValueBox: V5
+    LAYOUT_V6,   // ValueBox: V6
+    LAYOUT_V7,   // ValueBox: V7
+    LAYOUT_V8,   // ValueBox: V8
+    LAYOUT_V9,   // ValueBox: V9
+    LAYOUT_VA,   // ValueBox: VA
+    LAYOUT_VB,   // ValueBox: VB
+    LAYOUT_VC,   // ValueBox: VC
+    LAYOUT_VD,   // ValueBox: VD
+    LAYOUT_VE,   // ValueBox: VE
+    LAYOUT_VF,   // ValueBox: VF
+    LAYOUT_TIM,  // Line:     Timers
+    LAYOUT_DT,   // ValueBox: DT
+    LAYOUT_ST,   // ValueBox: ST
+    LAYOUT_SPE,  // Line:     Special
+    LAYOUT_I,    // ValueBox: I
+    LAYOUT_PC,   // ValueBox: PC
+    LAYOUT_SP,   // ValueBox: SP
+    LAYOUT_GAME, // GroupBox: Game
+    LAYOUT_DRAW, // Panel:    Draw
+    LAYOUT_ASM,  // GroupBox: Assembly
 } layout_id_t;
 
 /* Global variables --------------------------------------------------------- */
 
-static const Rectangle layout[] = {
+static const Rectangle gui_layout[] = {
     (Rectangle){ GUI_REGS_X, GUI_REGS_Y, GUI_REGS_WIDTH, GUI_REGS_HEIGHT },
     (Rectangle){ GUI_V0_X,   GUI_V0_Y,   GUI_V0_WIDTH,   GUI_V0_HEIGHT   },
     (Rectangle){ GUI_V1_X,   GUI_V1_Y,   GUI_V1_WIDTH,   GUI_V1_HEIGHT   },
@@ -222,10 +218,9 @@ static const Rectangle layout[] = {
     (Rectangle){ GUI_GAME_X, GUI_GAME_Y, GUI_GAME_WIDTH, GUI_GAME_HEIGHT },
     (Rectangle){ GUI_DRAW_X, GUI_DRAW_Y, GUI_DRAW_WIDTH, GUI_DRAW_HEIGHT },
     (Rectangle){ GUI_ASM_X,  GUI_ASM_Y,  GUI_ASM_WIDTH,  GUI_ASM_HEIGHT  },
-    (Rectangle){ GUI_OPS_X,  GUI_OPS_Y,  GUI_OPS_WIDTH,  GUI_OPS_HEIGHT  },
 };
 
-static const int keys[] = {
+static const int gui_keys[] = {
     KEY_ZERO,
     KEY_ONE,
     KEY_TWO,
