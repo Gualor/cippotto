@@ -9,6 +9,7 @@
 #include "raygui.h"
 #include "style_cyber.h"
 #include "constants.h"
+#include "icon.h"
 #include "chip8.h"
 
 /* Function Prototypes ------------------------------------------------------ */
@@ -294,7 +295,10 @@ void ReadInputKeys(void)
 void InitCippottoGui(void)
 {
     InitWindow(GUI_WINDOW_WIDTH, GUI_WINDOW_HEIGHT, GUI_WINDOW_TITLE);
+    SetWindowIcon((Image){ICON_DATA, ICON_WIDTH, ICON_HEIGHT, 1, ICON_FORMAT});
+
     SetTargetFPS(CHIP8_CLOCK_HZ);
+
     GuiLoadStyleCyber();
     GuiSetIconScale(GUI_ICON_SIZE);
 
