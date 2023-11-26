@@ -3,17 +3,13 @@
 #ifndef __CONSTANTS_H__
 #define __CONSTANTS_H__
 
-/* Includes ----------------------------------------------------------------- */
-
-#include <raylib.h>
-
 /* Definitions -------------------------------------------------------------- */
-
-#define GUI_GRID_SPACING  24
 
 #define GUI_WINDOW_TITLE  "Cippotto GUI"
 #define GUI_WINDOW_WIDTH  1520
 #define GUI_WINDOW_HEIGHT 552
+
+#define GUI_GRID_SPACING  24
 
 #define GUI_REGS_TITLE   "Registers"
 #define GUI_REGS_X       (GUI_GRID_SPACING)
@@ -180,6 +176,12 @@
 #define GUI_ASM_TEXT_LINES ((GUI_ASM_HEIGHT / GUI_GRID_SPACING) - 1)
 #define GUI_ASM_FONT_SIZE  22
 #define GUI_ASM_BUFFER_LEN 100
+
+#define GUI_ICON_PLAY  "#131#"
+#define GUI_ICON_PAUSE "#132#"
+#define GUI_ICON_STEP  "#208#"
+#define GUI_ICON_RST   "#211#"
+#define GUI_ICON_SIZE  3
 
 /* Data types --------------------------------------------------------------- */
 

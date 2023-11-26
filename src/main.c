@@ -4,12 +4,10 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include <raylib.h>
 
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
 #include "style_cyber.h"
-
 #include "constants.h"
 #include "chip8.h"
 
@@ -175,22 +173,15 @@ void UpdateFlowView(void)
 {
     GuiGroupBox(gui_layout[LAYOUT_FLOW], "Flow control");
 
-    Rectangle play_bounds = gui_layout[LAYOUT_PLAY];
-    if (GuiButton(play_bounds, NULL)) play_state = !play_state;
-    if (play_state) GuiDrawIcon(ICON_PLAYER_PAUSE, play_bounds.x,
-                                play_bounds.y, GUI_PLAY_PIXELS, line_color);
-    else GuiDrawIcon(ICON_ARROW_RIGHT_FILL, play_bounds.x, play_bounds.y - 2,
-                     GUI_PLAY_PIXELS, line_color);
+    if (GuiButton(gui_layout[LAYOUT_PLAY],
+        (play_state) ? GUI_ICON_PAUSE : GUI_ICON_PLAY))
+        play_state = !play_state;
 
-    Rectangle step_bounds = gui_layout[LAYOUT_STEP];
-    if (GuiButton(step_bounds, NULL)) step_state = true;
-    GuiDrawIcon(ICON_STEP_OVER, step_bounds.x, step_bounds.y, GUI_PLAY_PIXELS,
-                line_color);
+    if (GuiButton(gui_layout[LAYOUT_STEP], GUI_ICON_STEP))
+        step_state = true;
 
-    Rectangle rst_bounds = gui_layout[LAYOUT_RST];
-    if (GuiButton(rst_bounds, NULL)) rst_state = true;
-    GuiDrawIcon(ICON_RESTART, rst_bounds.x, rst_bounds.y, GUI_PLAY_PIXELS,
-                line_color);
+    if (GuiButton(gui_layout[LAYOUT_RST], GUI_ICON_RST))
+        rst_state = true;
 }
 
 /**
@@ -305,6 +296,8 @@ void InitCippottoGui(void)
     InitWindow(GUI_WINDOW_WIDTH, GUI_WINDOW_HEIGHT, GUI_WINDOW_TITLE);
     SetTargetFPS(CHIP8_CLOCK_HZ);
     GuiLoadStyleCyber();
+    GuiSetIconScale(GUI_ICON_SIZE);
+
     ResetASMView();
 
     text_size = GuiGetStyle(DEFAULT, TEXT_SIZE);
