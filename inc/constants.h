@@ -153,7 +153,7 @@
 #define GUI_ASM_WIDTH      (GUI_REGS_WIDTH)
 #define GUI_ASM_HEIGHT     (GUI_REGS_HEIGHT)
 #define GUI_ASM_TEXT_LINES ((GUI_ASM_HEIGHT / GUI_GRID_SPACING) - 2)
-#define GUI_ASM_FONT_SIZE  19
+#define GUI_ASM_FONT_SIZE  22
 #define GUI_ASM_BUFFER_LEN 100
 
 /* Data types --------------------------------------------------------------- */

@@ -20,7 +20,7 @@ static void UpdateCippottoGui(chip8_t *ch8);
 static void ReadInputKeys(chip8_t *ch8);
 static void UpdateRegsView(chip8_t *ch8);
 static void UpdateRegValue(char *text, void *reg, int size, int *value,
-                           bool *edit, Rectangle rec);
+                           bool *edit, Rectangle bounds);
 static void UpdateGameView(chip8_t *ch8);
 static void UpdateASMView(chip8_t *ch8);
 
@@ -58,7 +58,8 @@ static Rectangle asm_content = {0};
 static Rectangle asm_view = {0};
 static Vector2 asm_scroll = {0, 0};
 
-// Style colors
+// Style parameters
+static int text_size = GUI_GRID_SPACING;
 static Color background_color = {0};
 static Color line_color = {0};
 static Color border_color[4] = {0};
@@ -71,6 +72,11 @@ static int rom_addr = CHIP8_RAM_PROGRAM;
 
 /* Function definitions ----------------------------------------------------- */
 
+/**
+ * @brief Update registers view
+ * 
+ * @param ch8 Chip-8 instance
+ */
 void UpdateRegsView(chip8_t *ch8)
 {
     GuiGroupBox(gui_layout[LAYOUT_REGS], "Registers");
@@ -95,8 +101,18 @@ void UpdateRegsView(chip8_t *ch8)
                    gui_layout[LAYOUT_SP]);
 }
 
+/**
+ * @brief Update a single register ValueBox
+ * 
+ * @param text   Text to display
+ * @param reg    Chip-8 register
+ * @param size   Size of register (8 or 16 bits)
+ * @param value  Displayed value
+ * @param edit   Edit mode
+ * @param bounds Position and dimensions
+ */
 void UpdateRegValue(char *text, void *reg, int size, int *value, bool *edit,
-                    Rectangle rec)
+                    Rectangle bounds)
 {
     if (!(*edit))
     {
@@ -104,13 +120,19 @@ void UpdateRegValue(char *text, void *reg, int size, int *value, bool *edit,
         memcpy(value, reg, size);
     }
 
-    if (GuiValueBox(rec, text, value, 0x00, (size == 1) ? 0xFF : 0xFFFF, *edit))
+    int max_val = (size == sizeof(uint8_t)) ? 0xFF : 0xFFFF;
+    if (GuiValueBox(bounds, text, value, 0x00, max_val, *edit))
     {
         if (*edit) memcpy(reg, value, size);
         *edit = !(*edit);
     }
 }
 
+/**
+ * @brief Update Game view
+ * 
+ * @param ch8 Chip-8 instance
+ */
 void UpdateGameView(chip8_t *ch8)
 {
     GuiGroupBox(gui_layout[LAYOUT_GAME], GUI_GAME_TITLE);
@@ -136,6 +158,11 @@ void UpdateGameView(chip8_t *ch8)
     }
 }
 
+/**
+ * @brief Update Assembly view
+ * 
+ * @param ch8 Chip-8 instance
+ */
 void UpdateASMView(chip8_t *ch8)
 {
     Rectangle panel = gui_layout[LAYOUT_ASM];
@@ -163,40 +190,56 @@ void UpdateASMView(chip8_t *ch8)
         }
     }
 
-    float posx = panel.x + asm_scroll.x + GUI_GRID_SPACING;
-    float posy = panel.y + asm_scroll.y + asm_content.height - GUI_GRID_SPACING;
-    int idx = asm_head;
+    float text_x = panel.x + asm_scroll.x + GUI_GRID_SPACING;
+    float text_y = panel.y + asm_scroll.y + asm_content.height - 38;
+    int asm_i = asm_head;
+
+    GuiSetStyle(DEFAULT, TEXT_SIZE, GUI_ASM_FONT_SIZE);
     for (int i = 0; i < asm_counter; ++i)
     {
-        DrawText(
-            asm_buffer[idx--],
-            posx,
-            posy - (GUI_GRID_SPACING * i),
-            GUI_ASM_FONT_SIZE,
+        GuiDrawText(
+            asm_buffer[asm_i--],
+            (Rectangle){
+                text_x,
+                text_y - (GUI_GRID_SPACING * i),
+                panel.width,
+                GUI_GRID_SPACING
+            },
+            GUI_GRID_SPACING,
             (i == 0) ? text_color[2] : text_color[0]
         );
-
-        if (idx < 0) idx += GUI_ASM_BUFFER_LEN;
+        if (asm_i < 0) asm_i += GUI_ASM_BUFFER_LEN;
     }
-
+    GuiSetStyle(DEFAULT, TEXT_SIZE, text_size);
     EndScissorMode();
     DrawRectangleRec((Rectangle){panel.x, panel.y, panel.width - 14, 6},
                      background_color);
     GuiGroupBox(panel, GUI_ASM_TITLE);
 }
 
+/**
+ * @brief Read Chip-8 input keys
+ * 
+ * @param ch8 Chip-8 instance
+ */
 void ReadInputKeys(chip8_t *ch8)
 {
-    memset(ch8->keys, 0x0, sizeof(uint8_t) * CHIP8_KEYS_SIZE);
+    memset(ch8->keys, 0x00, sizeof(uint8_t) * CHIP8_KEYS_SIZE);
     for (uint8_t i = 0; i < CHIP8_KEYS_SIZE; ++i)
         ch8->keys[i] = IsKeyDown(gui_keys[i]);
 }
 
+/**
+ * @brief Initialize Cippotto GUI
+ * 
+ */
 void InitCippottoGui(void)
 {
     InitWindow(GUI_WINDOW_WIDTH, GUI_WINDOW_HEIGHT, GUI_WINDOW_TITLE);
     SetTargetFPS(CHIP8_CLOCK_HZ);
     GuiLoadStyleCyber();
+
+    text_size = GuiGetStyle(DEFAULT, TEXT_SIZE);
 
     background_color = GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR));
     line_color = GetColor(GuiGetStyle(DEFAULT, LINE_COLOR));
@@ -218,10 +261,15 @@ void InitCippottoGui(void)
 
     asm_content.x = 0;
     asm_content.y = 0;
-    asm_content.width = gui_layout[LAYOUT_ASM].width - 15;
+    asm_content.width = gui_layout[LAYOUT_ASM].width - 14;
     asm_content.height = gui_layout[LAYOUT_ASM].height;
 }
 
+/**
+ * @brief Update Cippotto GUI
+ * 
+ * @param ch8 Chip-8 instance
+ */
 void UpdateCippottoGui(chip8_t *ch8)
 {
     BeginDrawing();
@@ -232,6 +280,13 @@ void UpdateCippottoGui(chip8_t *ch8)
     EndDrawing();
 }
 
+/**
+ * @brief Main function
+ * 
+ * @param argc Number of arguments
+ * @param argv Array of arguments
+ * @return     Return code
+ */
 int main(int argc, char **argv)
 {
     if (argc < 2)
@@ -258,8 +313,9 @@ int main(int argc, char **argv)
     fclose(rom);
 
     InitCippottoGui();
-    while (!WindowShouldClose() && !chip8_run(&chip8))
+    while (!WindowShouldClose())
     {
+        chip8_run(&chip8);
         ReadInputKeys(&chip8);
         UpdateCippottoGui(&chip8);
     }
