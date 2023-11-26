@@ -109,13 +109,12 @@ chip8_err_t chip8_run(chip8_t *ch8)
     chip8_err_t err;
     chip8_op_t op;
     chip8_cmd_t cmd;
-    static char str[CHIP8_DECODE_STR_SIZE];
 
     err = chip8_fetch(ch8, &op);
     if (err)
         return err;
 
-    err = chip8_decode(&cmd, str, op);
+    err = chip8_decode(&cmd, NULL, op);
     if (err)
         return err;
 
@@ -185,158 +184,162 @@ chip8_err_t chip8_fetch(chip8_t *ch8, chip8_op_t *op)
  */
 chip8_err_t chip8_decode(chip8_cmd_t *cmd, char *str, chip8_op_t op)
 {
+    static chip8_err_t err = CHIP8_OK;
+    static chip8_cmd_t _cmd = NULL;
+    static char _str[CHIP8_DECODE_STR_SIZE] = "UNKNOWN";
+
     switch (op.o)
     {
     case 0x0000:
         switch (op.nn)
         {
         case 0xE0:
-            sprintf(str, "CLS");
-            *cmd = __CLS;
+            sprintf(_str, "CLS");
+            _cmd = __CLS;
             break;
 
         case 0xEE:
-            sprintf(str, "RET");
-            *cmd = __RET;
+            sprintf(_str, "RET");
+            _cmd = __RET;
             break;
 
         default:
-            sprintf(str, "SYS 0x%04X", op.nnn);
-            *cmd = __SYS;
+            sprintf(_str, "SYS 0x%04X", op.nnn);
+            _cmd = __SYS;
             break;
         }
         break;
 
     case 0x1000:
-        sprintf(str, "JP 0x%04X", op.nnn);
-        *cmd = __JP_NNN;
+        sprintf(_str, "JP 0x%04X", op.nnn);
+        _cmd = __JP_NNN;
         break;
 
     case 0x2000:
-        sprintf(str, "CALL 0x%04X", op.nnn);
-        *cmd = __CALL_NNN;
+        sprintf(_str, "CALL 0x%04X", op.nnn);
+        _cmd = __CALL_NNN;
         break;
 
     case 0x3000:
-        sprintf(str, "SE V%X, %d", op.x, op.nn);
-        *cmd = __SE_VX_NN;
+        sprintf(_str, "SE V%X, %d", op.x, op.nn);
+        _cmd = __SE_VX_NN;
         break;
 
     case 0x4000:
-        sprintf(str, "SNE V%X, %d", op.x, op.nn);
-        *cmd = __SNE_VX_NN;
+        sprintf(_str, "SNE V%X, %d", op.x, op.nn);
+        _cmd = __SNE_VX_NN;
         break;
 
     case 0x5000:
-        sprintf(str, "SE V%X, V%X", op.x, op.y);
-        *cmd = __SE_VX_VY;
+        sprintf(_str, "SE V%X, V%X", op.x, op.y);
+        _cmd = __SE_VX_VY;
         break;
 
     case 0x6000:
-        sprintf(str, "LD V%X, %d", op.x, op.nn);
-        *cmd = __LD_VX_NN;
+        sprintf(_str, "LD V%X, %d", op.x, op.nn);
+        _cmd = __LD_VX_NN;
         break;
 
     case 0x7000:
-        sprintf(str, "ADD V%X, %d", op.x, op.nn);
-        *cmd = __ADD_VX_NN;
+        sprintf(_str, "ADD V%X, %d", op.x, op.nn);
+        _cmd = __ADD_VX_NN;
         break;
 
     case 0x8000:
         switch (op.n)
         {
         case 0x0:
-            sprintf(str, "LD V%X, V%X", op.x, op.y);
-            *cmd = __LD_VX_VY;
+            sprintf(_str, "LD V%X, V%X", op.x, op.y);
+            _cmd = __LD_VX_VY;
             break;
 
         case 0x1:
-            sprintf(str, "OR V%X, V%X", op.x, op.y);
-            *cmd = __OR_VX_VY;
+            sprintf(_str, "OR V%X, V%X", op.x, op.y);
+            _cmd = __OR_VX_VY;
             break;
 
         case 0x2:
-            sprintf(str, "AND V%X, V%X", op.x, op.y);
-            *cmd = __AND_VX_VY;
+            sprintf(_str, "AND V%X, V%X", op.x, op.y);
+            _cmd = __AND_VX_VY;
             break;
 
         case 0x3:
-            sprintf(str, "XOR V%X, V%X", op.x, op.y);
-            *cmd = __XOR_VX_VY;
+            sprintf(_str, "XOR V%X, V%X", op.x, op.y);
+            _cmd = __XOR_VX_VY;
             break;
 
         case 0x4:
-            sprintf(str, "ADD, V%X, V%X", op.x, op.y);
-            *cmd = __ADD_VX_VY;
+            sprintf(_str, "ADD, V%X, V%X", op.x, op.y);
+            _cmd = __ADD_VX_VY;
             break;
 
         case 0x5:
-            sprintf(str, "SUB V%X, V%X", op.x, op.y);
-            *cmd = __SUB_VX_VY;
+            sprintf(_str, "SUB V%X, V%X", op.x, op.y);
+            _cmd = __SUB_VX_VY;
             break;
 
         case 0x6:
-            sprintf(str, "SHR V%X, V%X", op.x, op.y);
-            *cmd = __SHR_VX_VY;
+            sprintf(_str, "SHR V%X, V%X", op.x, op.y);
+            _cmd = __SHR_VX_VY;
             break;
 
         case 0x7:
-            sprintf(str, "SUBN V%X, V%X", op.x, op.y);
-            *cmd = __SUBN_VX_VY;
+            sprintf(_str, "SUBN V%X, V%X", op.x, op.y);
+            _cmd = __SUBN_VX_VY;
             break;
 
         case 0xE:
-            sprintf(str, "SHL V%X, V%X", op.x, op.y);
-            *cmd = __SHL_VX_VY;
+            sprintf(_str, "SHL V%X, V%X", op.x, op.y);
+            _cmd = __SHL_VX_VY;
             break;
 
         default:
-            sprintf(str, "UNKNOWN");
-            return CHIP8_INVALID_CMD;
+            err = CHIP8_INVALID_CMD;
+            break;
         }
         break;
 
     case 0x9000:
-        sprintf(str, "SNE V%X, V%X", op.x, op.y);
-        *cmd = __SNE_VX_VY;
+        sprintf(_str, "SNE V%X, V%X", op.x, op.y);
+        _cmd = __SNE_VX_VY;
         break;
 
     case 0xA000:
-        sprintf(str, "LD I, 0x%04X", op.nnn);
-        *cmd = __LD_I_NNN;
+        sprintf(_str, "LD I, 0x%04X", op.nnn);
+        _cmd = __LD_I_NNN;
         break;
 
     case 0xB000:
-        sprintf(str, "JP V0, 0x%04X", op.nnn);
-        *cmd = __JP_V0_NNN;
+        sprintf(_str, "JP V0, 0x%04X", op.nnn);
+        _cmd = __JP_V0_NNN;
         break;
 
     case 0xC000:
-        sprintf(str, "RND V%X, %d", op.x, op.nn);
-        *cmd = __RND_VX_NN;
+        sprintf(_str, "RND V%X, %d", op.x, op.nn);
+        _cmd = __RND_VX_NN;
         break;
 
     case 0xD000:
-        sprintf(str, "DRW V%X, V%X, %d", op.x, op.y, op.n);
-        *cmd = __DRW_VX_VY_N;
+        sprintf(_str, "DRW V%X, V%X, %d", op.x, op.y, op.n);
+        _cmd = __DRW_VX_VY_N;
         break;
 
     case 0xE000:
         switch (op.nn)
         {
         case 0x9E:
-            sprintf(str, "SKP V%X", op.x);
-            *cmd = __SKP_VX;
+            sprintf(_str, "SKP V%X", op.x);
+            _cmd = __SKP_VX;
             break;
 
         case 0xA1:
-            sprintf(str, "SKNP V%X", op.x);
-            *cmd = __SKNP_VX;
+            sprintf(_str, "SKNP V%X", op.x);
+            _cmd = __SKNP_VX;
             break;
 
         default:
-            sprintf(str, "UNKNOWN");
-            return CHIP8_INVALID_CMD;
+            err = CHIP8_INVALID_CMD;
+            break;
         }
         break;
 
@@ -344,62 +347,68 @@ chip8_err_t chip8_decode(chip8_cmd_t *cmd, char *str, chip8_op_t op)
         switch (op.nn)
         {
         case 0x07:
-            sprintf(str, "LD V%X, DT", op.x);
-            *cmd = __LD_VX_DT;
+            sprintf(_str, "LD V%X, DT", op.x);
+            _cmd = __LD_VX_DT;
             break;
 
         case 0x0A:
-            sprintf(str, "LD V%X, K", op.x);
-            *cmd = __LD_VX_K;
+            sprintf(_str, "LD V%X, K", op.x);
+            _cmd = __LD_VX_K;
             break;
 
         case 0x15:
-            sprintf(str, "LD DT, V%X", op.x);
-            *cmd = __LD_DT_VX;
+            sprintf(_str, "LD DT, V%X", op.x);
+            _cmd = __LD_DT_VX;
             break;
 
         case 0x18:
-            sprintf(str, "LD ST, V%X", op.x);
-            *cmd = __LD_ST_VX;
+            sprintf(_str, "LD ST, V%X", op.x);
+            _cmd = __LD_ST_VX;
             break;
 
         case 0x1E:
-            sprintf(str, "ADD I, V%X", op.x);
-            *cmd = __ADD_I_VX;
+            sprintf(_str, "ADD I, V%X", op.x);
+            _cmd = __ADD_I_VX;
             break;
 
         case 0x29:
-            sprintf(str, "LD F, V%X", op.x);
-            *cmd = __LD_F_VX;
+            sprintf(_str, "LD F, V%X", op.x);
+            _cmd = __LD_F_VX;
             break;
 
         case 0x33:
-            sprintf(str, "LD B, V%X", op.x);
-            *cmd = __LD_B_VX;
+            sprintf(_str, "LD B, V%X", op.x);
+            _cmd = __LD_B_VX;
             break;
 
         case 0x55:
-            sprintf(str, "LD [I], V%X", op.x);
-            *cmd = __LD_I_VX;
+            sprintf(_str, "LD [I], V%X", op.x);
+            _cmd = __LD_I_VX;
             break;
 
         case 0x65:
-            sprintf(str, "LD V%X, [I]", op.x);
-            *cmd = __LD_VX_I;
+            sprintf(_str, "LD V%X, [I]", op.x);
+            _cmd = __LD_VX_I;
             break;
 
         default:
-            sprintf(str, "UNKNOWN");
-            return CHIP8_INVALID_CMD;
+            err = CHIP8_INVALID_CMD;
+            break;
         }
         break;
 
     default:
-        sprintf(str, "UNKNOWN");
-        return CHIP8_INVALID_CMD;
+        err = CHIP8_INVALID_CMD;
+        break;
     }
 
-    return CHIP8_OK;
+    if (cmd != NULL)
+        memcpy(cmd, &_cmd, sizeof(chip8_cmd_t));
+
+    if (str != NULL)
+        strcpy(str, _str);
+
+    return err;
 }
 
 /**
