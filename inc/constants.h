@@ -9,59 +9,60 @@
 
 /* Definitions -------------------------------------------------------------- */
 
+#define GUI_GRID_SPACING  24
+
 #define GUI_WINDOW_TITLE  "Cippotto GUI"
 #define GUI_WINDOW_WIDTH  1520
 #define GUI_WINDOW_HEIGHT 552
 
-#define GUI_GRID_SPACING  24
+#define GUI_REGS_TITLE   "Registers"
+#define GUI_REGS_X       (GUI_GRID_SPACING)
+#define GUI_REGS_Y       (GUI_GRID_SPACING)
+#define GUI_REGS_WIDTH   (GUI_GRID_SPACING * 11)
+#define GUI_REGS_HEIGHT  (GUI_WINDOW_HEIGHT - (GUI_GRID_SPACING * 2))
+#define GUI_REGS_SPACING 32
 
-#define GUI_REGS_TITLE  "Registers"
-#define GUI_REGS_X      (GUI_GRID_SPACING)
-#define GUI_REGS_Y      (GUI_GRID_SPACING)
-#define GUI_REGS_WIDTH  264
-#define GUI_REGS_HEIGHT 504
-
-#define GUI_V0_X      (GUI_REGS_X + GUI_GRID_SPACING * (2))
+#define GUI_V0_X      (GUI_REGS_X + GUI_GRID_SPACING * 2)
 #define GUI_V0_Y      (GUI_REGS_Y + GUI_GRID_SPACING)
-#define GUI_V0_WIDTH  (GUI_GRID_SPACING * (3))
+#define GUI_V0_WIDTH  (GUI_GRID_SPACING * 3)
 #define GUI_V0_HEIGHT (GUI_GRID_SPACING)
 
 #define GUI_V1_X      (GUI_V0_X)
-#define GUI_V1_Y      (GUI_V0_Y + (32 * 1))
+#define GUI_V1_Y      (GUI_V0_Y + GUI_REGS_SPACING)
 #define GUI_V1_WIDTH  (GUI_V0_WIDTH)
 #define GUI_V1_HEIGHT (GUI_V0_HEIGHT)
 
 #define GUI_V2_X      (GUI_V0_X)
-#define GUI_V2_Y      (GUI_V0_Y + (32 * 2))
+#define GUI_V2_Y      (GUI_V1_Y + GUI_REGS_SPACING)
 #define GUI_V2_WIDTH  (GUI_V0_WIDTH)
 #define GUI_V2_HEIGHT (GUI_V0_HEIGHT)
 
 #define GUI_V3_X      (GUI_V0_X)
-#define GUI_V3_Y      (GUI_V0_Y + (32 * 3))
+#define GUI_V3_Y      (GUI_V2_Y + GUI_REGS_SPACING)
 #define GUI_V3_WIDTH  (GUI_V0_WIDTH)
 #define GUI_V3_HEIGHT (GUI_V0_HEIGHT)
 
 #define GUI_V4_X      (GUI_V0_X)
-#define GUI_V4_Y      (GUI_V0_Y + (32 * 4))
+#define GUI_V4_Y      (GUI_V3_Y + GUI_REGS_SPACING)
 #define GUI_V4_WIDTH  (GUI_V0_WIDTH)
 #define GUI_V4_HEIGHT (GUI_V0_HEIGHT)
 
 #define GUI_V5_X      (GUI_V0_X)
-#define GUI_V5_Y      (GUI_V0_Y + (32 * 5))
+#define GUI_V5_Y      (GUI_V4_Y + GUI_REGS_SPACING)
 #define GUI_V5_WIDTH  (GUI_V0_WIDTH)
 #define GUI_V5_HEIGHT (GUI_V0_HEIGHT)
 
 #define GUI_V6_X      (GUI_V0_X)
-#define GUI_V6_Y      (GUI_V0_Y + (32 * 6))
+#define GUI_V6_Y      (GUI_V5_Y + GUI_REGS_SPACING)
 #define GUI_V6_WIDTH  (GUI_V0_WIDTH)
 #define GUI_V6_HEIGHT (GUI_V0_HEIGHT)
 
 #define GUI_V7_X      (GUI_V0_X)
-#define GUI_V7_Y      (GUI_V0_Y + (32 * 7))
+#define GUI_V7_Y      (GUI_V6_Y + GUI_REGS_SPACING)
 #define GUI_V7_WIDTH  (GUI_V0_WIDTH)
 #define GUI_V7_HEIGHT (GUI_V0_HEIGHT)
 
-#define GUI_V8_X      (GUI_REGS_X + GUI_GRID_SPACING * (7))
+#define GUI_V8_X      (GUI_REGS_X + (GUI_GRID_SPACING * 7))
 #define GUI_V8_Y      (GUI_V0_Y)
 #define GUI_V8_WIDTH  (GUI_V0_WIDTH)
 #define GUI_V8_HEIGHT (GUI_V0_HEIGHT)
@@ -102,12 +103,12 @@
 #define GUI_VF_HEIGHT (GUI_V0_HEIGHT)
 
 #define GUI_TIM_X      (GUI_REGS_X + GUI_GRID_SPACING)
-#define GUI_TIM_Y      (GUI_V7_Y + (40))
-#define GUI_TIM_WIDTH  (GUI_REGS_WIDTH - GUI_GRID_SPACING * (2))
+#define GUI_TIM_Y      (GUI_V7_Y + 40)
+#define GUI_TIM_WIDTH  (GUI_REGS_WIDTH - (GUI_GRID_SPACING * 2))
 #define GUI_TIM_HEIGHT 16
 
 #define GUI_DT_X      (GUI_V0_X)
-#define GUI_DT_Y      (GUI_TIM_Y + (32))
+#define GUI_DT_Y      (GUI_TIM_Y + GUI_REGS_SPACING)
 #define GUI_DT_WIDTH  (GUI_V0_WIDTH)
 #define GUI_DT_HEIGHT (GUI_V0_HEIGHT)
 
@@ -117,22 +118,22 @@
 #define GUI_ST_HEIGHT (GUI_V0_HEIGHT)
 
 #define GUI_SPE_X      (GUI_TIM_X)
-#define GUI_SPE_Y      (GUI_DT_Y + (40))
+#define GUI_SPE_Y      (GUI_DT_Y + 40)
 #define GUI_SPE_WIDTH  (GUI_TIM_WIDTH)
 #define GUI_SPE_HEIGHT (GUI_TIM_HEIGHT)
 
 #define GUI_I_X      (GUI_V0_X)
-#define GUI_I_Y      (GUI_SPE_Y + (32 * 1))
+#define GUI_I_Y      (GUI_SPE_Y + GUI_REGS_SPACING)
 #define GUI_I_WIDTH  (GUI_V0_WIDTH)
 #define GUI_I_HEIGHT (GUI_V0_HEIGHT)
 
 #define GUI_PC_X      (GUI_V0_X)
-#define GUI_PC_Y      (GUI_SPE_Y + (32 * 2))
+#define GUI_PC_Y      (GUI_I_Y + GUI_REGS_SPACING)
 #define GUI_PC_WIDTH  (GUI_V0_WIDTH)
 #define GUI_PC_HEIGHT (GUI_V0_HEIGHT)
 
 #define GUI_SP_X      (GUI_V0_X)
-#define GUI_SP_Y      (GUI_SPE_Y + (32 * 3))
+#define GUI_SP_Y      (GUI_PC_Y + GUI_REGS_SPACING)
 #define GUI_SP_WIDTH  (GUI_V0_WIDTH)
 #define GUI_SP_HEIGHT (GUI_V0_HEIGHT)
 
@@ -144,15 +145,39 @@
 
 #define GUI_DRAW_X      (GUI_GAME_X + GUI_GRID_SPACING)
 #define GUI_DRAW_Y      (GUI_GAME_Y + GUI_GRID_SPACING)
-#define GUI_DRAW_WIDTH  (GUI_GAME_WIDTH - GUI_GRID_SPACING * (2))
-#define GUI_DRAW_HEIGHT (GUI_GAME_HEIGHT - GUI_GRID_SPACING * (2))
+#define GUI_DRAW_WIDTH  (GUI_GAME_WIDTH - (GUI_GRID_SPACING * 2))
+#define GUI_DRAW_HEIGHT (GUI_GAME_HEIGHT - (GUI_GRID_SPACING * 2))
+
+#define GUI_FLOW_TITLE  "Flow control"
+#define GUI_FLOW_X      (GUI_GAME_X + GUI_GAME_WIDTH + GUI_GRID_SPACING)
+#define GUI_FLOW_Y      (GUI_REGS_Y)
+#define GUI_FLOW_WIDTH  (GUI_REGS_WIDTH)
+#define GUI_FLOW_HEIGHT (GUI_GRID_SPACING * 4)
+
+#define GUI_PLAY_X      (GUI_FLOW_X + GUI_GRID_SPACING)
+#define GUI_PLAY_Y      (GUI_FLOW_Y + GUI_GRID_SPACING)
+#define GUI_PLAY_WIDTH  (GUI_GRID_SPACING * 2)
+#define GUI_PLAY_HEIGHT (GUI_GRID_SPACING * 2)
+#define GUI_PLAY_PIXELS 3
+
+#define GUI_STEP_X      (GUI_FLOW_X + (GUI_FLOW_WIDTH - GUI_STEP_WIDTH) / 2)
+#define GUI_STEP_Y      (GUI_PLAY_Y)
+#define GUI_STEP_WIDTH  (GUI_GRID_SPACING * 2)
+#define GUI_STEP_HEIGHT (GUI_GRID_SPACING * 2)
+#define GUI_STEP_PIXELS (GUI_PLAY_PIXELS)
+
+#define GUI_RST_X      (GUI_FLOW_X + GUI_FLOW_WIDTH - GUI_RST_WIDTH - GUI_GRID_SPACING)
+#define GUI_RST_Y      (GUI_PLAY_Y)
+#define GUI_RST_WIDTH  (GUI_GRID_SPACING * 2)
+#define GUI_RST_HEIGHT (GUI_GRID_SPACING * 2)
+#define GUI_RST_PIXELS (GUI_PLAY_PIXELS)
 
 #define GUI_ASM_TITLE      "Assembly"
-#define GUI_ASM_X          (GUI_GAME_X + GUI_GAME_WIDTH + GUI_GRID_SPACING)
-#define GUI_ASM_Y          (GUI_REGS_Y)
+#define GUI_ASM_X          (GUI_FLOW_X)
+#define GUI_ASM_Y          (GUI_FLOW_Y + GUI_FLOW_HEIGHT + GUI_GRID_SPACING)
 #define GUI_ASM_WIDTH      (GUI_REGS_WIDTH)
-#define GUI_ASM_HEIGHT     (GUI_REGS_HEIGHT)
-#define GUI_ASM_TEXT_LINES ((GUI_ASM_HEIGHT / GUI_GRID_SPACING) - 2)
+#define GUI_ASM_HEIGHT     (GUI_REGS_HEIGHT - GUI_FLOW_HEIGHT - GUI_GRID_SPACING)
+#define GUI_ASM_TEXT_LINES ((GUI_ASM_HEIGHT / GUI_GRID_SPACING) - 1)
 #define GUI_ASM_FONT_SIZE  22
 #define GUI_ASM_BUFFER_LEN 100
 
@@ -185,6 +210,10 @@ typedef enum {
     LAYOUT_SP,   // ValueBox: SP
     LAYOUT_GAME, // GroupBox: Game
     LAYOUT_DRAW, // Panel:    Draw
+    LAYOUT_FLOW, // GroupBox: Flow control
+    LAYOUT_PLAY, // Button:   Play
+    LAYOUT_STEP, // Button:   Step
+    LAYOUT_RST,  // Button:   Restart
     LAYOUT_ASM,  // GroupBox: Assembly
 } layout_id_t;
 
@@ -217,6 +246,10 @@ static const Rectangle gui_layout[] = {
     (Rectangle){ GUI_SP_X,   GUI_SP_Y,   GUI_SP_WIDTH,   GUI_SP_HEIGHT   },
     (Rectangle){ GUI_GAME_X, GUI_GAME_Y, GUI_GAME_WIDTH, GUI_GAME_HEIGHT },
     (Rectangle){ GUI_DRAW_X, GUI_DRAW_Y, GUI_DRAW_WIDTH, GUI_DRAW_HEIGHT },
+    (Rectangle){ GUI_FLOW_X, GUI_FLOW_Y, GUI_FLOW_WIDTH, GUI_FLOW_HEIGHT },
+    (Rectangle){ GUI_PLAY_X, GUI_PLAY_Y, GUI_PLAY_WIDTH, GUI_PLAY_HEIGHT },
+    (Rectangle){ GUI_STEP_X, GUI_STEP_Y, GUI_STEP_WIDTH, GUI_STEP_HEIGHT },
+    (Rectangle){ GUI_RST_X,  GUI_RST_Y,  GUI_RST_WIDTH,  GUI_RST_HEIGHT  },
     (Rectangle){ GUI_ASM_X,  GUI_ASM_Y,  GUI_ASM_WIDTH,  GUI_ASM_HEIGHT  },
 };
 
