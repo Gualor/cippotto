@@ -51,6 +51,10 @@ static bool PC_edit = false;
 static int SP_value = 0;
 static bool SP_edit = false;
 
+// ValueBox: Clock
+static int CLK_value = CHIP8_CLOCK_HZ;
+static bool CLK_edit = false;
+
 // Button: Play
 static bool play_state = false;
 
@@ -70,11 +74,8 @@ static Rectangle asm_view = {0};
 static Vector2 asm_scroll = {0, 0};
 
 // Style parameters
-static int text_size = GUI_GRID_SPACING;
 static Color background_color = {0};
 static Color line_color = {0};
-static Color border_color[4] = {0};
-static Color base_color[4] = {0};
 static Color text_color[4] = {0};
 
 // Chip-8 instance
@@ -89,6 +90,9 @@ static chip8_t chip8 = {0};
 void UpdateRegsView(void)
 {
     GuiGroupBox(gui_layout[LAYOUT_REGS], "Registers");
+    if (play_state) GuiDisable();
+
+    // V0-VF registers
     for (uint8_t i = 0; i < CHIP8_REGS_NUM; ++i)
     {
         char Vi[5];
@@ -96,11 +100,15 @@ void UpdateRegsView(void)
         UpdateRegValue(Vi, &chip8.V[i], sizeof(uint8_t), &Vi_value[i],
                        &Vi_edit[i], gui_layout[LAYOUT_V0 + i]);
     }
+
+    // Timer registers
     GuiLine(gui_layout[LAYOUT_TIM], NULL);
     UpdateRegValue("DT ", &chip8.DT, sizeof(uint8_t), &DT_value, &DT_edit,
                    gui_layout[LAYOUT_DT]);
     UpdateRegValue("ST ", &chip8.ST, sizeof(uint8_t), &ST_value, &ST_edit,
                    gui_layout[LAYOUT_ST]);
+
+    // Special registers
     GuiLine(gui_layout[LAYOUT_SPE], NULL);
     UpdateRegValue("I ", &chip8.I, sizeof(uint16_t), &I_value, &I_edit,
                    gui_layout[LAYOUT_I]);
@@ -108,6 +116,18 @@ void UpdateRegsView(void)
                    gui_layout[LAYOUT_PC]);
     UpdateRegValue("SP ", &chip8.SP, sizeof(uint16_t), &SP_value, &SP_edit,
                    gui_layout[LAYOUT_SP]);
+
+    // Clock frequency
+    GuiDrawText("Clock", gui_layout[LAYOUT_TCLK], TEXT_ALIGN_CENTER,
+                text_color[GuiGetState()]);
+    if (GuiValueBox(gui_layout[LAYOUT_CLK], NULL, &CLK_value, 0, UINT16_MAX,
+                    CLK_edit))
+    {
+        if (CLK_edit) SetTargetFPS(CLK_value);
+        CLK_edit = !CLK_edit;
+    }
+
+    GuiEnable();
 }
 
 /**
@@ -129,8 +149,8 @@ void UpdateRegValue(char *text, void *reg, int size, int *value, bool *edit,
         memcpy(value, reg, size);
     }
 
-    int max_val = (size == sizeof(uint8_t)) ? 0xFF : 0xFFFF;
-    if (GuiValueBox(bounds, text, value, 0x00, max_val, *edit))
+    int max_val = (size == sizeof(uint8_t)) ? UINT8_MAX : UINT16_MAX;
+    if (GuiValueBox(bounds, text, value, 0, max_val, *edit))
     {
         if (*edit) memcpy(reg, value, size);
         *edit = !(*edit);
@@ -225,34 +245,24 @@ void UpdateASMView(void)
     }
 
     float text_x = panel.x + asm_scroll.x + GUI_GRID_SPACING;
-    float text_y = panel.y + asm_scroll.y + asm_content.height - 38;
+    float text_y = panel.y + asm_scroll.y + asm_content.height - GUI_GRID_SPACING;
     int asm_i = asm_head;
 
-    GuiSetStyle(DEFAULT, TEXT_SIZE, GUI_ASM_FONT_SIZE);
+    Rectangle PC_rec = {GUI_FLOW_X, text_y, GUI_FLOW_WIDTH, GUI_GRID_SPACING};
+    DrawRectangleRec(PC_rec, ColorAlpha(text_color[STATE_PRESSED], 0.3));
+
     for (int i = 0; i < asm_counter; ++i)
     {
-        Rectangle text_bounds = {text_x, text_y - (GUI_GRID_SPACING * i),
-                                 panel.width - GUI_GRID_SPACING * 2,
-                                 GUI_GRID_SPACING};
-        if (i == 0)
-        {
-            Rectangle rec_bounds = {GUI_FLOW_X, text_bounds.y, GUI_FLOW_WIDTH,
-                                    text_bounds.height};
-            DrawRectangleRec(rec_bounds, ColorAlpha(text_color[2], 0.3));
-        }
-
-        GuiDrawText(
-            asm_buffer[asm_i--],
-            text_bounds,
-            GUI_GRID_SPACING,
-            text_color[0]
-        );
-
+        Rectangle text_rec = {text_x, text_y - (GUI_GRID_SPACING * i),
+                              panel.width - GUI_GRID_SPACING * 2,
+                              GUI_GRID_SPACING};
+        GuiDrawText(asm_buffer[asm_i--], text_rec, TEXT_ALIGN_LEFT,
+                    i ? text_color[STATE_DISABLED] : text_color[STATE_PRESSED]);
         if (asm_i < 0) asm_i += GUI_ASM_BUFFER_LEN;
     }
-    GuiSetStyle(DEFAULT, TEXT_SIZE, text_size);
+
     EndScissorMode();
-    DrawRectangleRec((Rectangle){panel.x, panel.y, panel.width - 14, 6},
+    DrawRectangleRec((Rectangle){panel.x, panel.y, panel.width - 14, 10},
                      background_color);
     GuiGroupBox(panel, GUI_ASM_TITLE);
 }
@@ -274,7 +284,7 @@ void ResetASMView(void)
     asm_content.x = 0;
     asm_content.y = 0;
     asm_content.width = gui_layout[LAYOUT_ASM].width - 14;
-    asm_content.height = gui_layout[LAYOUT_ASM].height;
+    asm_content.height = gui_layout[LAYOUT_ASM].height - 1;
 }
 
 /**
@@ -297,32 +307,20 @@ void InitCippottoGui(void)
     InitWindow(GUI_WINDOW_WIDTH, GUI_WINDOW_HEIGHT, GUI_WINDOW_TITLE);
     SetWindowIcon((Image){ICON_DATA, ICON_WIDTH, ICON_HEIGHT, 1, ICON_FORMAT});
 
-    SetTargetFPS(CHIP8_CLOCK_HZ);
+    SetTargetFPS(CLK_value);
 
     GuiLoadStyleCyber();
     GuiSetIconScale(GUI_ICON_SIZE);
+    GuiSetStyle(DEFAULT, TEXT_SIZE, GUI_FONT_SIZE);
 
     ResetASMView();
 
-    text_size = GuiGetStyle(DEFAULT, TEXT_SIZE);
-
     background_color = GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR));
     line_color = GetColor(GuiGetStyle(DEFAULT, LINE_COLOR));
-
-    border_color[0] = GetColor(GuiGetStyle(DEFAULT, BORDER_COLOR_NORMAL));
-    border_color[1] = GetColor(GuiGetStyle(DEFAULT, BORDER_COLOR_FOCUSED));
-    border_color[2] = GetColor(GuiGetStyle(DEFAULT, BORDER_COLOR_PRESSED));
-    border_color[3] = GetColor(GuiGetStyle(DEFAULT, BORDER_COLOR_DISABLED));
-
-    base_color[0] = GetColor(GuiGetStyle(DEFAULT, BASE_COLOR_NORMAL));
-    base_color[1] = GetColor(GuiGetStyle(DEFAULT, BASE_COLOR_FOCUSED));
-    base_color[2] = GetColor(GuiGetStyle(DEFAULT, BASE_COLOR_PRESSED));
-    base_color[3] = GetColor(GuiGetStyle(DEFAULT, BASE_COLOR_DISABLED));
-
-    text_color[0] = GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_NORMAL));
-    text_color[1] = GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_FOCUSED));
-    text_color[2] = GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_PRESSED));
-    text_color[3] = GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_DISABLED));
+    text_color[STATE_NORMAL] = GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_NORMAL));
+    text_color[STATE_FOCUSED] = GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_FOCUSED));
+    text_color[STATE_PRESSED] = GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_PRESSED));
+    text_color[STATE_DISABLED] = GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_DISABLED));
 }
 
 /**

@@ -9,7 +9,8 @@
 #define GUI_WINDOW_WIDTH  1520
 #define GUI_WINDOW_HEIGHT 552
 
-#define GUI_GRID_SPACING  24
+#define GUI_GRID_SPACING 24
+#define GUI_FONT_SIZE    22
 
 #define GUI_REGS_TITLE   "Registers"
 #define GUI_REGS_X       (GUI_GRID_SPACING)
@@ -133,6 +134,17 @@
 #define GUI_SP_WIDTH  (GUI_V0_WIDTH)
 #define GUI_SP_HEIGHT (GUI_V0_HEIGHT)
 
+#define GUI_TCLK_TITLE  "Clock"
+#define GUI_TCLK_X      (GUI_V8_X)
+#define GUI_TCLK_Y      (GUI_I_Y)
+#define GUI_TCLK_WIDTH  (GUI_V0_WIDTH)
+#define GUI_TCLK_HEIGHT (GUI_V0_HEIGHT)
+
+#define GUI_CLK_X      (GUI_V8_X)
+#define GUI_CLK_Y      (GUI_PC_Y)
+#define GUI_CLK_WIDTH  (GUI_V0_WIDTH)
+#define GUI_CLK_HEIGHT (GUI_SP_Y - GUI_PC_Y + GUI_V0_HEIGHT)
+
 #define GUI_GAME_TITLE  "Game"
 #define GUI_GAME_X      (GUI_REGS_X + GUI_REGS_WIDTH + GUI_GRID_SPACING)
 #define GUI_GAME_Y      (GUI_REGS_Y)
@@ -174,7 +186,6 @@
 #define GUI_ASM_WIDTH      (GUI_REGS_WIDTH)
 #define GUI_ASM_HEIGHT     (GUI_REGS_HEIGHT - GUI_FLOW_HEIGHT - GUI_GRID_SPACING)
 #define GUI_ASM_TEXT_LINES ((GUI_ASM_HEIGHT / GUI_GRID_SPACING) - 1)
-#define GUI_ASM_FONT_SIZE  22
 #define GUI_ASM_BUFFER_LEN 100
 
 #define GUI_ICON_PLAY  "#131#"
@@ -210,6 +221,8 @@ typedef enum {
     LAYOUT_I,    // ValueBox: I
     LAYOUT_PC,   // ValueBox: PC
     LAYOUT_SP,   // ValueBox: SP
+    LAYOUT_TCLK, // Text:     Clock text
+    LAYOUT_CLK,  // ValueBox: Clock
     LAYOUT_GAME, // GroupBox: Game
     LAYOUT_DRAW, // Panel:    Draw
     LAYOUT_FLOW, // GroupBox: Flow control
@@ -246,6 +259,8 @@ static const Rectangle gui_layout[] = {
     (Rectangle){ GUI_I_X,    GUI_I_Y,    GUI_I_WIDTH,    GUI_I_HEIGHT    },
     (Rectangle){ GUI_PC_X,   GUI_PC_Y,   GUI_PC_WIDTH,   GUI_PC_HEIGHT   },
     (Rectangle){ GUI_SP_X,   GUI_SP_Y,   GUI_SP_WIDTH,   GUI_SP_HEIGHT   },
+    (Rectangle){ GUI_TCLK_X, GUI_TCLK_Y, GUI_TCLK_WIDTH, GUI_TCLK_HEIGHT },
+    (Rectangle){ GUI_CLK_X,  GUI_CLK_Y,  GUI_CLK_WIDTH,  GUI_CLK_HEIGHT  },
     (Rectangle){ GUI_GAME_X, GUI_GAME_Y, GUI_GAME_WIDTH, GUI_GAME_HEIGHT },
     (Rectangle){ GUI_DRAW_X, GUI_DRAW_Y, GUI_DRAW_WIDTH, GUI_DRAW_HEIGHT },
     (Rectangle){ GUI_FLOW_X, GUI_FLOW_Y, GUI_FLOW_WIDTH, GUI_FLOW_HEIGHT },
