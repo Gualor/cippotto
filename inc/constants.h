@@ -9,6 +9,7 @@
 #define GUI_WINDOW_WIDTH  1520
 #define GUI_WINDOW_HEIGHT 552
 
+#define GUI_REFRESH_RATE 60
 #define GUI_GRID_SPACING 24
 #define GUI_FONT_SIZE    22
 

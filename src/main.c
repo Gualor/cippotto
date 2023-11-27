@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <time.h>
 
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
@@ -14,6 +15,8 @@
 
 /* Function Prototypes ------------------------------------------------------ */
 
+static void InitEmulator(void);
+static void RunEmulator(void);
 static void InitCippottoGui(void);
 static void UpdateCippottoGui(void);
 static void ReadInputKeys(void);
@@ -78,6 +81,14 @@ static Color background_color = {0};
 static Color line_color = {0};
 static Color text_color[4] = {0};
 
+// Time variables
+static double emu_time = 0;
+static double gui_time = 0;
+
+// CLI arguments
+static char *rom_path = NULL;
+static int rom_addr = CHIP8_RAM_PROGRAM;
+
 // Chip-8 instance
 static chip8_t chip8 = {0};
 
@@ -120,14 +131,11 @@ void UpdateRegsView(void)
     // Clock frequency
     GuiDrawText("Clock", gui_layout[LAYOUT_TCLK], TEXT_ALIGN_CENTER,
                 text_color[GuiGetState()]);
-    if (GuiValueBox(gui_layout[LAYOUT_CLK], NULL, &CLK_value, 0, UINT16_MAX,
-                    CLK_edit))
-    {
-        if (CLK_edit) SetTargetFPS(CLK_value);
+    if (GuiValueBox(
+        gui_layout[LAYOUT_CLK], NULL, &CLK_value, 0, UINT16_MAX, CLK_edit))
         CLK_edit = !CLK_edit;
-    }
 
-    GuiEnable();
+    if (play_state) GuiEnable();
 }
 
 /**
@@ -194,15 +202,18 @@ void UpdateFlowView(void)
 {
     GuiGroupBox(gui_layout[LAYOUT_FLOW], "Flow control");
 
-    if (GuiButton(gui_layout[LAYOUT_PLAY],
-        (play_state) ? GUI_ICON_PAUSE : GUI_ICON_PLAY))
+    // Play/pause button
+    if (GuiButton(
+        gui_layout[LAYOUT_PLAY], (play_state) ? GUI_ICON_PAUSE : GUI_ICON_PLAY))
         play_state = !play_state;
 
-    if (GuiButton(gui_layout[LAYOUT_STEP], GUI_ICON_STEP))
-        step_state = true;
+    // Step button
+    if (play_state) GuiDisable();
+    if (GuiButton(gui_layout[LAYOUT_STEP], GUI_ICON_STEP)) step_state = true;
+    if (play_state) GuiEnable();
 
-    if (GuiButton(gui_layout[LAYOUT_RST], GUI_ICON_RST))
-        rst_state = true;
+    // Restart button
+    if (GuiButton(gui_layout[LAYOUT_RST], GUI_ICON_RST)) rst_state = true;
 }
 
 /**
@@ -293,7 +304,7 @@ void ResetASMView(void)
  */
 void ReadInputKeys(void)
 {
-    memset(chip8.keys, 0x00, sizeof(uint8_t) * CHIP8_KEYS_SIZE);
+    memset(chip8.keys, 0, sizeof(uint8_t) * CHIP8_KEYS_SIZE);
     for (uint8_t i = 0; i < CHIP8_KEYS_SIZE; ++i)
         chip8.keys[i] = IsKeyDown(gui_keys[i]);
 }
@@ -307,8 +318,6 @@ void InitCippottoGui(void)
     InitWindow(GUI_WINDOW_WIDTH, GUI_WINDOW_HEIGHT, GUI_WINDOW_TITLE);
     SetWindowIcon((Image){ICON_DATA, ICON_WIDTH, ICON_HEIGHT, 1, ICON_FORMAT});
 
-    SetTargetFPS(CLK_value);
-
     GuiLoadStyleCyber();
     GuiSetIconScale(GUI_ICON_SIZE);
     GuiSetStyle(DEFAULT, TEXT_SIZE, GUI_FONT_SIZE);
@@ -321,6 +330,8 @@ void InitCippottoGui(void)
     text_color[STATE_FOCUSED] = GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_FOCUSED));
     text_color[STATE_PRESSED] = GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_PRESSED));
     text_color[STATE_DISABLED] = GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_DISABLED));
+
+    gui_time = GetTime();
 }
 
 /**
@@ -329,15 +340,80 @@ void InitCippottoGui(void)
  */
 void UpdateCippottoGui(void)
 {
-    BeginDrawing();
-    ClearBackground(background_color);
+    double curr_time = GetTime();
+    if (curr_time - gui_time >= 1.0 / GUI_REFRESH_RATE)
+    {
+        BeginDrawing();
+        ClearBackground(background_color);
 
-    UpdateRegsView();
-    UpdateGameView();
-    UpdateFlowView();
-    UpdateASMView();
+        UpdateRegsView();
+        UpdateGameView();
+        UpdateFlowView();
+        UpdateASMView();
 
-    EndDrawing();
+        EndDrawing();
+
+        gui_time = curr_time;
+    }
+}
+
+/**
+ * @brief Initialize Chip-8 emulator
+ * 
+ */
+void InitEmulator(void)
+{
+    FILE *rom = fopen(rom_path, "rb");
+    if (rom == NULL)
+    {
+        fprintf(stderr, "Error opening the ROM file: %s\n", rom_path);
+        exit(1);
+    }
+
+    chip8_cfg_t chip8_cfg = {rom, rom_addr};
+    chip8_err_t err = chip8_init(&chip8, chip8_cfg);
+    if (err)
+    {
+        if (err == CHIP8_INVALID_ADDR)
+            fprintf(stderr, "Invalid ROM address\n");
+        else if (err == CHIP8_INSUFF_MEMORY)
+            fprintf(stderr, "Insufficient memory\n");
+        exit(err);
+    }
+
+    fclose(rom);
+
+    emu_time = GetTime();
+}
+
+/**
+ * @brief Run one Chip-8 emulator cycle
+ * 
+ */
+void RunEmulator(void)
+{
+    if (rst_state)
+    {
+        InitEmulator();
+        rst_state = false;
+        return;
+    }
+
+    double curr_time = GetTime();
+    if (play_state || step_state)
+    {
+        if (curr_time - emu_time >= 1.0 / CLK_value)
+        {
+            chip8_err_t err = chip8_run(&chip8);
+            if (err)
+            {
+                fprintf(stderr, "Emulator runtime error\n");
+                exit(err);
+            }
+            step_state = false;
+            emu_time = curr_time;
+        }
+    }
 }
 
 /**
@@ -354,55 +430,22 @@ int main(int argc, char **argv)
         fprintf(stderr, "Usage: %s <rom> <addr, optional>\n", argv[0]);
         exit(1);
     }
-    char *rom_path = argv[1];
-    int rom_addr = (argc > 2) ? atoi(argv[2]) : CHIP8_RAM_PROGRAM;
+    rom_path = argv[1];
+    if (argc > 2) rom_addr = atoi(argv[2]);
 
-    FILE *rom = fopen(rom_path, "rb");
-    if (rom == NULL)
-    {
-        fprintf(stderr, "Error opening the ROM file: %s\n", rom_path);
-        exit(1);
-    }
-
-    chip8_err_t err = CHIP8_OK;
-    chip8_cfg_t chip8_cfg = {rom, rom_addr};
-
-    err = chip8_init(&chip8, chip8_cfg);
-    if (err == CHIP8_INVALID_ADDR)
-    {
-        fprintf(stderr, "Invalid ROM address\n");
-        exit(1);
-    }
-    else if (err == CHIP8_INSUFF_MEMORY)
-    {
-        fprintf(stderr, "Insufficient memory\n");
-        exit(1);
-    }
-
+    InitEmulator();
     InitCippottoGui();
 
-    while (!WindowShouldClose() && !err)
+    while (!WindowShouldClose())
     {
-        if (play_state || step_state)
-        {
-            err = chip8_run(&chip8);
-            step_state = false;
-        }
-
-        if (rst_state)
-        {
-            err = chip8_init(&chip8, chip8_cfg);
-            rst_state = false;
-        }
-
         ReadInputKeys();
+        RunEmulator();
         UpdateCippottoGui();
     }
 
     CloseWindow();
-    fclose(rom);
 
-    return err;
+    return 0;
 }
 
 /* -------------------------------------------------------------------------- */
