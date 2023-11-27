@@ -71,7 +71,7 @@ static bool rst_state = false;
 static char asm_buffer[GUI_ASM_BUFFER_LEN][CHIP8_DECODE_STR_SIZE] = {0};
 static int asm_counter = 0;
 static int asm_head = 0;
-static int asm_opcode = 0;
+static int asm_pc = -1;
 static Rectangle asm_content = {0};
 static Rectangle asm_view = {0};
 static Vector2 asm_scroll = {0, 0};
@@ -232,10 +232,11 @@ void UpdateASMView(void)
     GuiScrollPanel(panel, NULL, asm_content, &asm_scroll, &asm_view);
     BeginScissorMode(asm_view.x, asm_view.y, asm_view.width, asm_view.height);
 
-    uint16_t opcode = (chip8.ram[chip8.PC] << 8) | chip8.ram[chip8.PC + 1];
-    if (opcode != asm_opcode)
+    if (asm_pc != chip8.PC)
     {
-        asm_opcode = opcode;
+        asm_pc = chip8.PC;
+
+        uint16_t opcode = (chip8.ram[chip8.PC] << 8) | chip8.ram[chip8.PC + 1];
         chip8_op_t parsed;
         chip8_parse(&parsed, opcode);
 
@@ -290,7 +291,7 @@ void ResetASMView(void)
 
     asm_counter = 0;
     asm_head = 0;
-    asm_opcode = 0;
+    asm_pc = -1;
 
     asm_content.x = 0;
     asm_content.y = 0;
