@@ -125,7 +125,6 @@ typedef chip8_err_t (*chip8_cmd_t)(chip8_t *, chip8_op_t);
 
 chip8_err_t chip8_init(chip8_t *ch8, chip8_cfg_t cfg);
 chip8_err_t chip8_run(chip8_t *ch8);
-chip8_err_t chip8_parse(chip8_op_t *op, uint16_t raw);
 chip8_err_t chip8_fetch(chip8_t *ch8, chip8_op_t *op);
 chip8_err_t chip8_decode(chip8_cmd_t *cmd, char *str, chip8_op_t op);
 chip8_err_t chip8_execute(chip8_t *ch8, chip8_cmd_t cmd, chip8_op_t op);

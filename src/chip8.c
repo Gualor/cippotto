@@ -102,7 +102,7 @@ chip8_err_t chip8_init(chip8_t *ch8, chip8_cfg_t cfg)
  * @brief Run one Chip-8 CPU cycle (fetch-decode-execute)
  * 
  * @param ch8 Chip-8 instance
- * @return    Error code 
+ * @return    Error code
  */
 chip8_err_t chip8_run(chip8_t *ch8)
 {
@@ -126,26 +126,7 @@ chip8_err_t chip8_run(chip8_t *ch8)
 }
 
 /**
- * @brief Parse a Chip-8 opcode
- * 
- * @param op  Parsed opcode
- * @param raw Raw opcode
- * @return    Error code
- */
-chip8_err_t chip8_parse(chip8_op_t *op, uint16_t raw)
-{
-    op->o = (raw & 0xF000);
-    op->nnn = (raw & 0x0FFF);
-    op->nn = (raw & 0x00FF);
-    op->n = (raw & 0x000F);
-    op->x = (op->nnn >> 8);
-    op->y = (op->nn >> 4);
-
-    return CHIP8_OK;
-}
-
-/**
- * @brief Fetch new Chip-8 instruction
+ * @brief Fetch a new Chip-8 instruction
  *
  * @param ch8 Chip-8 instance
  * @param op  Parsed opcode
@@ -157,19 +138,12 @@ chip8_err_t chip8_fetch(chip8_t *ch8, chip8_op_t *op)
     uint16_t raw = ((uint16_t)ch8->ram[ch8->PC] << 8) | ch8->ram[ch8->PC + 1];
 
     // Parse opcode
-    chip8_parse(op, raw);
-
-    // Update program counter
-    ch8->PC += sizeof(uint16_t);
-
-    // Update timers
-    if ((ch8->cycles++ % CHIP8_CLOCK_TIMER_RATIO) == 0)
-    {
-        if (ch8->DT > 0)
-            --ch8->DT;
-        if (ch8->ST > 0)
-            --ch8->ST;
-    }
+    op->o = (raw & 0xF000);
+    op->nnn = (raw & 0x0FFF);
+    op->nn = (raw & 0x00FF);
+    op->n = (raw & 0x000F);
+    op->x = (op->nnn >> 8);
+    op->y = (op->nn >> 4);
 
     return CHIP8_OK;
 }
@@ -421,6 +395,19 @@ chip8_err_t chip8_decode(chip8_cmd_t *cmd, char *str, chip8_op_t op)
  */
 chip8_err_t chip8_execute(chip8_t *ch8, chip8_cmd_t cmd, chip8_op_t op)
 {
+    // Update program counter
+    ch8->PC += sizeof(uint16_t);
+
+    // Update timers
+    if ((ch8->cycles++ % CHIP8_CLOCK_TIMER_RATIO) == 0)
+    {
+        if (ch8->DT > 0)
+            --ch8->DT;
+        if (ch8->ST > 0)
+            --ch8->ST;
+    }
+
+    // Execute instruction
     return cmd(ch8, op);
 }
 
