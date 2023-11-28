@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include <time.h>
 
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
@@ -16,7 +15,9 @@
 /* Function Prototypes ------------------------------------------------------ */
 
 static void InitEmulator(void);
-static void RunEmulator(void);
+static void ExecuteEmulator(void);
+static void UpdateEmulator(void);
+
 static void InitCippottoGui(void);
 static void UpdateCippottoGui(void);
 static void ReadInputKeys(void);
@@ -89,8 +90,10 @@ static double gui_time = 0;
 static char *rom_path = NULL;
 static int rom_addr = CHIP8_RAM_PROGRAM;
 
-// Chip-8 instance
+// Chip-8 emulator
 static chip8_t chip8 = {0};
+static chip8_op_t chip8_op = {0};
+static chip8_cmd_t chip8_cmd = NULL;
 
 /* Function definitions ----------------------------------------------------- */
 
@@ -232,30 +235,6 @@ void UpdateASMView(void)
     GuiScrollPanel(panel, NULL, asm_content, &asm_scroll, &asm_view);
     BeginScissorMode(asm_view.x, asm_view.y, asm_view.width, asm_view.height);
 
-    if (asm_pc != chip8.PC)
-    {
-        asm_pc = chip8.PC;
-
-        uint16_t opcode = (chip8.ram[chip8.PC] << 8) | chip8.ram[chip8.PC + 1];
-        chip8_op_t parsed;
-        chip8_parse(&parsed, opcode);
-
-        static char cmd_str[CHIP8_DECODE_STR_SIZE];
-        chip8_decode(NULL, cmd_str, parsed);
-
-        asm_head = (asm_head + 1) % GUI_ASM_BUFFER_LEN;
-        sprintf(asm_buffer[asm_head], "0x%04X\t%s", chip8.PC, cmd_str);
-        if (asm_counter < GUI_ASM_BUFFER_LEN)
-        {
-            ++asm_counter;
-            if (asm_counter > GUI_ASM_TEXT_LINES)
-            {
-                asm_content.height += GUI_GRID_SPACING;
-                asm_scroll.y -= GUI_GRID_SPACING;
-            }
-        }
-    }
-
     float text_x = panel.x + asm_scroll.x + GUI_GRID_SPACING;
     float text_y = panel.y + asm_scroll.y + asm_content.height - GUI_GRID_SPACING;
     int asm_i = asm_head;
@@ -381,17 +360,42 @@ void InitEmulator(void)
             fprintf(stderr, "Insufficient memory\n");
         exit(err);
     }
-
     fclose(rom);
+
+    UpdateEmulator();
 
     emu_time = GetTime();
 }
 
 /**
- * @brief Run one Chip-8 emulator cycle
+ * @brief Update Chip-8 emulator
  * 
  */
-void RunEmulator(void)
+void UpdateEmulator(void)
+{
+    static char str[CHIP8_DECODE_STR_SIZE];
+    chip8_fetch(&chip8, &chip8_op);
+    chip8_decode(&chip8_cmd, str, chip8_op);
+
+    asm_head = (asm_head + 1) % GUI_ASM_BUFFER_LEN;
+    sprintf(asm_buffer[asm_head], "0x%04X\t%s", chip8.PC, str);
+
+    if (asm_counter < GUI_ASM_BUFFER_LEN)
+    {
+        ++asm_counter;
+        if (asm_counter > GUI_ASM_TEXT_LINES)
+        {
+            asm_content.height += GUI_GRID_SPACING;
+            asm_scroll.y -= GUI_GRID_SPACING;
+        }
+    }
+}
+
+/**
+ * @brief Execute Chip-8 emulator
+ * 
+ */
+void ExecuteEmulator(void)
 {
     if (rst_state)
     {
@@ -405,12 +409,15 @@ void RunEmulator(void)
     {
         if (curr_time - emu_time >= 1.0 / CLK_value)
         {
-            chip8_err_t err = chip8_run(&chip8);
+            chip8_err_t err = chip8_execute(&chip8, chip8_cmd, chip8_op);
             if (err)
             {
                 fprintf(stderr, "Emulator runtime error\n");
                 exit(err);
             }
+
+            UpdateEmulator();
+
             step_state = false;
             emu_time = curr_time;
         }
@@ -434,13 +441,13 @@ int main(int argc, char **argv)
     rom_path = argv[1];
     if (argc > 2) rom_addr = atoi(argv[2]);
 
-    InitEmulator();
     InitCippottoGui();
+    InitEmulator();
 
     while (!WindowShouldClose())
     {
         ReadInputKeys();
-        RunEmulator();
+        ExecuteEmulator();
         UpdateCippottoGui();
     }
 
