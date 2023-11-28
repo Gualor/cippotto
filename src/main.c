@@ -225,11 +225,7 @@ void UpdateFlowView(void)
  */
 void UpdateASMView(void)
 {
-    if (rst_state)
-    {
-        ResetASMView();
-        return;
-    }
+    if (rst_state) ResetASMView();
 
     Rectangle panel = gui_layout[LAYOUT_ASM];
     GuiScrollPanel(panel, NULL, asm_content, &asm_scroll, &asm_view);
