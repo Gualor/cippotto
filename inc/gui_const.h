@@ -1,24 +1,27 @@
 /* Header Guard ------------------------------------------------------------- */
 
-#ifndef __CONSTANTS_H__
-#define __CONSTANTS_H__
+#ifndef __GUI_CONST_H__
+#define __GUI_CONST_H__
+
+/* Includes ----------------------------------------------------------------- */
+
+#include <raylib.h>
 
 /* Definitions -------------------------------------------------------------- */
 
-#define GUI_WINDOW_TITLE  "Cippotto GUI"
 #define GUI_WINDOW_WIDTH  1520
-#define GUI_WINDOW_HEIGHT 552
+#define GUI_WINDOW_HEIGHT 648
 
 #define GUI_REFRESH_RATE 60
 #define GUI_GRID_SPACING 24
 #define GUI_FONT_SIZE    22
+#define GUI_PATH_MAX     256
 
-#define GUI_REGS_TITLE   "Registers"
 #define GUI_REGS_X       (GUI_GRID_SPACING)
 #define GUI_REGS_Y       (GUI_GRID_SPACING)
 #define GUI_REGS_WIDTH   (GUI_GRID_SPACING * 11)
 #define GUI_REGS_HEIGHT  (GUI_WINDOW_HEIGHT - (GUI_GRID_SPACING * 2))
-#define GUI_REGS_SPACING 32
+#define GUI_REGS_SPACING 40
 
 #define GUI_V0_X      (GUI_REGS_X + GUI_GRID_SPACING * 2)
 #define GUI_V0_Y      (GUI_REGS_Y + GUI_GRID_SPACING)
@@ -101,7 +104,7 @@
 #define GUI_VF_HEIGHT (GUI_V0_HEIGHT)
 
 #define GUI_TIM_X      (GUI_REGS_X + GUI_GRID_SPACING)
-#define GUI_TIM_Y      (GUI_V7_Y + 40)
+#define GUI_TIM_Y      (GUI_V7_Y + 44)
 #define GUI_TIM_WIDTH  (GUI_REGS_WIDTH - (GUI_GRID_SPACING * 2))
 #define GUI_TIM_HEIGHT 16
 
@@ -116,7 +119,7 @@
 #define GUI_ST_HEIGHT (GUI_V0_HEIGHT)
 
 #define GUI_SPE_X      (GUI_TIM_X)
-#define GUI_SPE_Y      (GUI_DT_Y + 40)
+#define GUI_SPE_Y      (GUI_DT_Y + 44)
 #define GUI_SPE_WIDTH  (GUI_TIM_WIDTH)
 #define GUI_SPE_HEIGHT (GUI_TIM_HEIGHT)
 
@@ -135,9 +138,8 @@
 #define GUI_SP_WIDTH  (GUI_V0_WIDTH)
 #define GUI_SP_HEIGHT (GUI_V0_HEIGHT)
 
-#define GUI_TCLK_TITLE  "Clock"
 #define GUI_TCLK_X      (GUI_V8_X)
-#define GUI_TCLK_Y      (GUI_I_Y)
+#define GUI_TCLK_Y      (GUI_I_Y + 12)
 #define GUI_TCLK_WIDTH  (GUI_V0_WIDTH)
 #define GUI_TCLK_HEIGHT (GUI_V0_HEIGHT)
 
@@ -146,18 +148,16 @@
 #define GUI_CLK_WIDTH  (GUI_V0_WIDTH)
 #define GUI_CLK_HEIGHT (GUI_SP_Y - GUI_PC_Y + GUI_V0_HEIGHT)
 
-#define GUI_GAME_TITLE  "Game"
 #define GUI_GAME_X      (GUI_REGS_X + GUI_REGS_WIDTH + GUI_GRID_SPACING)
 #define GUI_GAME_Y      (GUI_REGS_Y)
 #define GUI_GAME_WIDTH  896
-#define GUI_GAME_HEIGHT (GUI_REGS_HEIGHT)
+#define GUI_GAME_HEIGHT 504
 
 #define GUI_DRAW_X      (GUI_GAME_X + GUI_GRID_SPACING)
 #define GUI_DRAW_Y      (GUI_GAME_Y + GUI_GRID_SPACING)
 #define GUI_DRAW_WIDTH  (GUI_GAME_WIDTH - (GUI_GRID_SPACING * 2))
 #define GUI_DRAW_HEIGHT (GUI_GAME_HEIGHT - (GUI_GRID_SPACING * 2))
 
-#define GUI_FLOW_TITLE  "Flow control"
 #define GUI_FLOW_X      (GUI_GAME_X + GUI_GAME_WIDTH + GUI_GRID_SPACING)
 #define GUI_FLOW_Y      (GUI_REGS_Y)
 #define GUI_FLOW_WIDTH  (GUI_REGS_WIDTH)
@@ -181,7 +181,6 @@
 #define GUI_RST_HEIGHT (GUI_GRID_SPACING * 2)
 #define GUI_RST_PIXELS (GUI_PLAY_PIXELS)
 
-#define GUI_ASM_TITLE      "Assembly"
 #define GUI_ASM_X          (GUI_FLOW_X)
 #define GUI_ASM_Y          (GUI_FLOW_Y + GUI_FLOW_HEIGHT + GUI_GRID_SPACING)
 #define GUI_ASM_WIDTH      (GUI_REGS_WIDTH)
@@ -189,11 +188,42 @@
 #define GUI_ASM_TEXT_LINES ((GUI_ASM_HEIGHT / GUI_GRID_SPACING) - 1)
 #define GUI_ASM_BUFFER_LEN 100
 
+#define GUI_ROM_X      (GUI_GAME_X)
+#define GUI_ROM_Y      (GUI_GAME_Y + GUI_GAME_HEIGHT + GUI_GRID_SPACING)
+#define GUI_ROM_WIDTH  (GUI_GAME_WIDTH)
+#define GUI_ROM_HEIGHT (GUI_GRID_SPACING * 3)
+
+#define GUI_TROM_X      (GUI_ROM_X + GUI_GRID_SPACING)
+#define GUI_TROM_Y      (GUI_ROM_Y + GUI_GRID_SPACING)
+#define GUI_TROM_WIDTH  (GUI_GRID_SPACING * 3)
+#define GUI_TROM_HEIGHT (GUI_GRID_SPACING)
+
+#define GUI_FILE_X      (GUI_TROM_X + GUI_TROM_WIDTH)
+#define GUI_FILE_Y      (GUI_TROM_Y)
+#define GUI_FILE_WIDTH  (GUI_GRID_SPACING)
+#define GUI_FILE_HEIGHT (GUI_GRID_SPACING)
+
+#define GUI_BAR_X       (GUI_FILE_X + GUI_FILE_WIDTH)
+#define GUI_BAR_Y       (GUI_TROM_Y)
+#define GUI_BAR_WIDTH   (GUI_ADDR_X - GUI_BAR_X - (GUI_GRID_SPACING * 5))
+#define GUI_BAR_HEIGHT  (GUI_GRID_SPACING)
+#define GUI_BAR_MAX_LEN 200
+
+#define GUI_ADDR_X      (GUI_LOAD_X - GUI_V0_WIDTH - GUI_GRID_SPACING)
+#define GUI_ADDR_Y      (GUI_TROM_Y)
+#define GUI_ADDR_WIDTH  (GUI_V0_WIDTH)
+#define GUI_ADDR_HEIGHT (GUI_V0_HEIGHT)
+
+#define GUI_LOAD_X      (GUI_ROM_X + GUI_ROM_WIDTH - GUI_V0_WIDTH - GUI_GRID_SPACING)
+#define GUI_LOAD_Y      (GUI_TROM_Y)
+#define GUI_LOAD_WIDTH  (GUI_GRID_SPACING * 3)
+#define GUI_LOAD_HEIGHT (GUI_V0_HEIGHT)
+
 #define GUI_ICON_PLAY  "#131#"
 #define GUI_ICON_PAUSE "#132#"
 #define GUI_ICON_STEP  "#208#"
 #define GUI_ICON_RST   "#211#"
-#define GUI_ICON_SIZE  3
+#define GUI_ICON_FILE  "#001#"
 
 /* Data types --------------------------------------------------------------- */
 
@@ -231,6 +261,12 @@ typedef enum {
     LAYOUT_STEP, // Button:   Step
     LAYOUT_RST,  // Button:   Restart
     LAYOUT_ASM,  // GroupBox: Assembly
+    LAYOUT_ROM,  // GroupBox: Rom
+    LAYOUT_TROM, // Text:     Rom path text
+    LAYOUT_FILE, // Button:   Load file
+    LAYOUT_BAR,  // TextBox:  Search bar
+    LAYOUT_ADDR, // ValueBox: Load addr
+    LAYOUT_LOAD, // Button:   Load rom
 } layout_id_t;
 
 /* Global variables --------------------------------------------------------- */
@@ -269,6 +305,12 @@ static const Rectangle gui_layout[] = {
     (Rectangle){ GUI_STEP_X, GUI_STEP_Y, GUI_STEP_WIDTH, GUI_STEP_HEIGHT },
     (Rectangle){ GUI_RST_X,  GUI_RST_Y,  GUI_RST_WIDTH,  GUI_RST_HEIGHT  },
     (Rectangle){ GUI_ASM_X,  GUI_ASM_Y,  GUI_ASM_WIDTH,  GUI_ASM_HEIGHT  },
+    (Rectangle){ GUI_ROM_X,  GUI_ROM_Y,  GUI_ROM_WIDTH,  GUI_ROM_HEIGHT  },
+    (Rectangle){ GUI_TROM_X, GUI_TROM_Y, GUI_TROM_WIDTH, GUI_TROM_HEIGHT },
+    (Rectangle){ GUI_FILE_X, GUI_FILE_Y, GUI_FILE_WIDTH, GUI_FILE_HEIGHT },
+    (Rectangle){ GUI_BAR_X,  GUI_BAR_Y,  GUI_BAR_WIDTH,  GUI_BAR_HEIGHT  },
+    (Rectangle){ GUI_ADDR_X, GUI_ADDR_Y, GUI_ADDR_WIDTH, GUI_ADDR_HEIGHT },
+    (Rectangle){ GUI_LOAD_X, GUI_LOAD_Y, GUI_LOAD_WIDTH, GUI_LOAD_HEIGHT },
 };
 
 static const int gui_keys[] = {
@@ -290,6 +332,6 @@ static const int gui_keys[] = {
     KEY_F,
 };
 
-#endif /* __CONSTANTS_H__ */
+#endif /* __GUI_CONST_H__ */
 
 /* -------------------------------------------------------------------------- */

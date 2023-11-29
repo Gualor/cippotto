@@ -1,17 +1,24 @@
 /* Header guard ------------------------------------------------------------- */
 
-#ifndef __ICON_H__
-#define __ICON_H__
+#ifndef __GUI_ICON_H__
+#define __GUI_ICON_H__
+
+/* Includes ----------------------------------------------------------------- */
+
+#include <raylib.h>
 
 /* Definitions -------------------------------------------------------------- */
 
-#define ICON_WIDTH  16
-#define ICON_HEIGHT 16
-#define ICON_FORMAT 7
+#define GUI_ICON_WIDTH  16
+#define GUI_ICON_HEIGHT 16
+#define GUI_ICON_FORMAT 7
+
+#define GUI_ICON_IMAGE \
+    (Image){gui_icon_data, GUI_ICON_WIDTH, GUI_ICON_HEIGHT, 1, GUI_ICON_FORMAT}
 
 /* Global variables --------------------------------------------------------- */
 
-static unsigned char ICON_DATA[1024] = {
+static unsigned char gui_icon_data[1024] = {
     0x0, 0x0,  0x0,  0x0,  0x0, 0x0,  0x0,  0x0,  0x0, 0x0,  0x0,  0x0,
     0x0, 0x0,  0x0,  0x0,  0x0, 0x0,  0x0,  0xde, 0x0, 0x0,  0x0,  0x76,
     0x0, 0x0,  0x0,  0x0,  0x0, 0x0,  0x0,  0xab, 0x0, 0x0,  0x0,  0xa8,
@@ -100,6 +107,6 @@ static unsigned char ICON_DATA[1024] = {
     0x0, 0x0,  0x0,  0x0,
 };
 
-#endif /* __ICON_H__ */
+#endif /* __GUI_ICON_H__ */
 
 /* -------------------------------------------------------------------------- */
