@@ -106,13 +106,13 @@ typedef struct
  */
 typedef enum
 {
-    CHIP8_OK,
-    CHIP8_EXIT,
-    CHIP8_INVALID_CMD,
-    CHIP8_INVALID_KEY,
-    CHIP8_INVALID_ADDR,
-    CHIP8_INSUFF_MEMORY,
-    CHIP8_STACK_OVERFLOW,
+    CHIP8_OK             = 0x0,
+    CHIP8_EXIT           = 0xA,
+    CHIP8_INVALID_CMD    = 0xB,
+    CHIP8_INVALID_KEY    = 0xC,
+    CHIP8_INVALID_ADDR   = 0xD,
+    CHIP8_INSUFF_MEMORY  = 0xE,
+    CHIP8_STACK_OVERFLOW = 0xF,
 } chip8_err_t;
 
 /**
