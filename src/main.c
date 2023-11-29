@@ -4,15 +4,21 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <raylib.h>
 
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
-#include "style_cyber.h"
-#include "constants.h"
-#include "icon.h"
+#undef  RAYGUI_IMPLEMENTATION
+#define GUI_DIALOG_IMPLEMENTATION
+#include "gui_dialog.h"
+#include "gui_icon.h"
+#include "gui_style.h"
+#include "gui_const.h"
 #include "chip8.h"
 
 /* Function Prototypes ------------------------------------------------------ */
+
+static void ParseArgs(int argc, char **argv);
 
 static void InitEmulator(void);
 static void ExecuteEmulator(void);
@@ -28,6 +34,7 @@ static void UpdateGameView(void);
 static void UpdateFlowView(void);
 static void UpdateASMView(void);
 static void ResetASMView(void);
+static void UpdateROMView(void);
 
 /* Global variables --------------------------------------------------------- */
 
@@ -61,6 +68,7 @@ static bool CLK_edit = false;
 
 // Button: Play
 static bool play_state = false;
+static bool start_state = false;
 
 // Button: Step
 static bool step_state = false;
@@ -69,13 +77,29 @@ static bool step_state = false;
 static bool rst_state = false;
 
 // ScrollPanel: Assembly
-static char asm_buffer[GUI_ASM_BUFFER_LEN][CHIP8_DECODE_STR_SIZE] = {0};
+static char asm_pc_buffer[GUI_ASM_BUFFER_LEN][7] = {0};
+static char asm_op_buffer[GUI_ASM_BUFFER_LEN][CHIP8_DECODE_STR_SIZE] = {0};
 static int asm_counter = 0;
 static int asm_head = 0;
 static int asm_pc = -1;
 static Rectangle asm_content = {0};
 static Rectangle asm_view = {0};
 static Vector2 asm_scroll = {0, 0};
+
+// TextBox: ROM path
+static char rom_path[GUI_PATH_MAX] = "";
+static bool rom_path_edit = false;
+
+// ValueBox: ROM address
+static int rom_addr = CHIP8_RAM_PROGRAM;
+static bool rom_addr_edit = false;
+
+// Button: ROM load
+static bool rom_load_state = false;
+static bool pre_load_state = false;
+
+// Window: File dialog
+static GuiWindowFileDialogState file_dialog = {0};
 
 // Style parameters
 static Color background_color = {0};
@@ -85,10 +109,6 @@ static Color text_color[4] = {0};
 // Time variables
 static double emu_time = 0;
 static double gui_time = 0;
-
-// CLI arguments
-static char *rom_path = NULL;
-static int rom_addr = CHIP8_RAM_PROGRAM;
 
 // Chip-8 emulator
 static chip8_t chip8 = {0};
@@ -104,7 +124,7 @@ static chip8_cmd_t chip8_cmd = NULL;
 void UpdateRegsView(void)
 {
     GuiGroupBox(gui_layout[LAYOUT_REGS], "Registers");
-    if (play_state) GuiDisable();
+    if (!rom_load_state || play_state) GuiDisable();
 
     // V0-VF registers
     for (uint8_t i = 0; i < CHIP8_REGS_NUM; ++i)
@@ -138,7 +158,7 @@ void UpdateRegsView(void)
         gui_layout[LAYOUT_CLK], NULL, &CLK_value, 0, UINT16_MAX, CLK_edit))
         CLK_edit = !CLK_edit;
 
-    if (play_state) GuiEnable();
+    if (!rom_load_state || play_state) GuiEnable();
 }
 
 /**
@@ -174,7 +194,7 @@ void UpdateRegValue(char *text, void *reg, int size, int *value, bool *edit,
  */
 void UpdateGameView(void)
 {
-    GuiGroupBox(gui_layout[LAYOUT_GAME], GUI_GAME_TITLE);
+    GuiGroupBox(gui_layout[LAYOUT_GAME], "Game");
 
     Rectangle panel = gui_layout[LAYOUT_DRAW];
     float scale_x = panel.width / CHIP8_DISPLAY_WIDTH;
@@ -184,12 +204,8 @@ void UpdateGameView(void)
     {
         for (uint8_t y = 0; y < CHIP8_DISPLAY_HEIGHT; ++y)
         {
-            Rectangle pixel = {
-                panel.x + (x * scale_x),
-                panel.y + (y * scale_y),
-                scale_x,
-                scale_y,
-            };
+            Rectangle pixel = {panel.x + (x * scale_x), panel.y + (y * scale_y),
+                               scale_x, scale_y};
 
             if (chip8.display[x + y * CHIP8_DISPLAY_WIDTH])
                 DrawRectangleRec(pixel, line_color);
@@ -204,8 +220,9 @@ void UpdateGameView(void)
 void UpdateFlowView(void)
 {
     GuiGroupBox(gui_layout[LAYOUT_FLOW], "Flow control");
+    if (!rom_load_state) GuiDisable();
 
-    // Play/pause button
+    // Play / pause button
     if (GuiButton(
         gui_layout[LAYOUT_PLAY], (play_state) ? GUI_ICON_PAUSE : GUI_ICON_PLAY))
         play_state = !play_state;
@@ -217,6 +234,8 @@ void UpdateFlowView(void)
 
     // Restart button
     if (GuiButton(gui_layout[LAYOUT_RST], GUI_ICON_RST)) rst_state = true;
+
+    if (!rom_load_state) GuiEnable();
 }
 
 /**
@@ -231,27 +250,38 @@ void UpdateASMView(void)
     GuiScrollPanel(panel, NULL, asm_content, &asm_scroll, &asm_view);
     BeginScissorMode(asm_view.x, asm_view.y, asm_view.width, asm_view.height);
 
-    float text_x = panel.x + asm_scroll.x + GUI_GRID_SPACING;
+    float text_x = panel.x + asm_scroll.x + (GUI_GRID_SPACING * 2);
     float text_y = panel.y + asm_scroll.y + asm_content.height - GUI_GRID_SPACING;
     int asm_i = asm_head;
 
-    Rectangle PC_rec = {GUI_FLOW_X, text_y, GUI_FLOW_WIDTH, GUI_GRID_SPACING};
-    DrawRectangleRec(PC_rec, ColorAlpha(text_color[STATE_PRESSED], 0.3));
+    Color asm_color = (GuiGetState() == STATE_DISABLED) ?
+                       text_color[STATE_DISABLED] : text_color[STATE_PRESSED];
+
+    if (rom_load_state)
+    {
+        Rectangle PC_rec = {GUI_FLOW_X, text_y, GUI_FLOW_WIDTH, GUI_GRID_SPACING};
+        DrawRectangleRec(PC_rec, ColorAlpha(asm_color, 0.3));
+    }
 
     for (int i = 0; i < asm_counter; ++i)
     {
-        Rectangle text_rec = {text_x, text_y - (GUI_GRID_SPACING * i),
-                              panel.width - GUI_GRID_SPACING * 2,
-                              GUI_GRID_SPACING};
-        GuiDrawText(asm_buffer[asm_i--], text_rec, TEXT_ALIGN_LEFT,
-                    i ? text_color[STATE_DISABLED] : text_color[STATE_PRESSED]);
-        if (asm_i < 0) asm_i += GUI_ASM_BUFFER_LEN;
+        if (i > 0) asm_color = text_color[STATE_DISABLED];
+
+        Rectangle pc_rec = {text_x, text_y - (GUI_GRID_SPACING * i),
+                            GUI_GRID_SPACING * 2, GUI_GRID_SPACING};
+        GuiDrawText(asm_pc_buffer[asm_i], pc_rec, TEXT_ALIGN_LEFT, asm_color);
+
+        Rectangle op_rec = {pc_rec.x + pc_rec.width + GUI_GRID_SPACING,
+                            pc_rec.y, GUI_GRID_SPACING * 4, GUI_GRID_SPACING};
+        GuiDrawText(asm_op_buffer[asm_i], op_rec, TEXT_ALIGN_LEFT, asm_color);
+
+        if (--asm_i < 0) asm_i += GUI_ASM_BUFFER_LEN;
     }
 
     EndScissorMode();
     DrawRectangleRec((Rectangle){panel.x, panel.y, panel.width - 14, 10},
                      background_color);
-    GuiGroupBox(panel, GUI_ASM_TITLE);
+    GuiGroupBox(panel, "Assembly");
 }
 
 /**
@@ -260,7 +290,8 @@ void UpdateASMView(void)
  */
 void ResetASMView(void)
 {
-    memset(asm_buffer, 0, sizeof(asm_buffer));
+    memset(asm_pc_buffer, 0, sizeof(asm_pc_buffer));
+    memset(asm_op_buffer, 0, sizeof(asm_op_buffer));
     memset(&asm_view, 0, sizeof(asm_view));
     memset(&asm_scroll, 0, sizeof(asm_scroll));
 
@@ -272,6 +303,49 @@ void ResetASMView(void)
     asm_content.y = 0;
     asm_content.width = gui_layout[LAYOUT_ASM].width - 14;
     asm_content.height = gui_layout[LAYOUT_ASM].height - 1;
+}
+
+/**
+ * @brief Update ROM view
+ * 
+ */
+void UpdateROMView(void)
+{
+    GuiGroupBox(gui_layout[LAYOUT_ROM], "Rom");
+    GuiDrawText("Rom path", gui_layout[LAYOUT_TROM], TEXT_ALIGN_LEFT,
+                text_color[GuiGetState()]);
+
+    // Open file dialog button
+    if (GuiButton(gui_layout[LAYOUT_FILE], GUI_ICON_FILE))
+        file_dialog.windowActive = true;
+
+    // ROM path search bar
+    if (GuiTextBox(gui_layout[LAYOUT_BAR], rom_path, GUI_PATH_MAX, rom_path_edit))
+        rom_path_edit = !rom_path_edit;
+
+    // ROM address value box
+    if (GuiValueBox(gui_layout[LAYOUT_ADDR], "Load address ", &rom_addr,
+        CHIP8_RAM_START, CHIP8_RAM_END, rom_addr_edit))
+        rom_addr_edit = !rom_addr_edit;
+
+    // ROM memory load button
+    if (GuiButton(gui_layout[LAYOUT_LOAD], "Load") || pre_load_state)
+    {
+        pre_load_state = false;
+        rom_load_state = true;
+        play_state = start_state;
+        ResetASMView();
+        InitEmulator();
+    }
+
+    // File dialog window
+    GuiEnable();
+    GuiWindowFileDialog(&file_dialog);
+    if (file_dialog.windowActive) GuiDisable();
+    if (file_dialog.SelectFilePressed)
+        strcpy(rom_path, TextFormat("%s" PATH_SEPERATOR "%s",
+                                    file_dialog.dirPathText,
+                                    file_dialog.fileNameText));
 }
 
 /**
@@ -291,12 +365,12 @@ void ReadInputKeys(void)
  */
 void InitCippottoGui(void)
 {
-    InitWindow(GUI_WINDOW_WIDTH, GUI_WINDOW_HEIGHT, GUI_WINDOW_TITLE);
-    SetWindowIcon((Image){ICON_DATA, ICON_WIDTH, ICON_HEIGHT, 1, ICON_FORMAT});
-
+    InitWindow(GUI_WINDOW_WIDTH, GUI_WINDOW_HEIGHT, "Cippotto GUI");
+    SetWindowIcon(GUI_ICON_IMAGE);
     GuiLoadStyleCyber();
-    GuiSetIconScale(GUI_ICON_SIZE);
-    GuiSetStyle(DEFAULT, TEXT_SIZE, GUI_FONT_SIZE);
+
+    file_dialog = InitGuiWindowFileDialog(GetWorkingDirectory());
+    file_dialog.windowActive = false;
 
     ResetASMView();
 
@@ -326,6 +400,7 @@ void UpdateCippottoGui(void)
         UpdateGameView();
         UpdateFlowView();
         UpdateASMView();
+        UpdateROMView();
 
         EndDrawing();
 
@@ -369,12 +444,11 @@ void InitEmulator(void)
  */
 void UpdateEmulator(void)
 {
-    static char str[CHIP8_DECODE_STR_SIZE];
-    chip8_fetch(&chip8, &chip8_op);
-    chip8_decode(&chip8_cmd, str, chip8_op);
-
     asm_head = (asm_head + 1) % GUI_ASM_BUFFER_LEN;
-    sprintf(asm_buffer[asm_head], "0x%04X\t%s", chip8.PC, str);
+    sprintf(asm_pc_buffer[asm_head], "0x%04X", chip8.PC);
+
+    chip8_fetch(&chip8, &chip8_op);
+    chip8_decode(&chip8_cmd, asm_op_buffer[asm_head], chip8_op);
 
     if (asm_counter < GUI_ASM_BUFFER_LEN)
     {
@@ -421,6 +495,50 @@ void ExecuteEmulator(void)
 }
 
 /**
+ * @brief Parse command line arguments
+ * 
+ * @param argc Number of arguments
+ * @param argv Array of arguments
+ */
+void ParseArgs(int argc, char **argv)
+{
+    int arg_i = 0;
+    while (++arg_i < argc)
+    {
+        if (!strcmp(argv[arg_i], "-h") || !strcmp(argv[arg_i], "--help"))
+        {   
+            printf(
+                "Usage: %s [options]\n"
+                "Options:\n"
+                "    -r, --rom <file>   Load Chip-8 ROM game into GUI.\n"
+                "    -a, --addr <NNN>   Specify 12-bit ROM loading address.\n"
+                "    -s, --start        Start game automatically upon loading.\n",
+                argv[0]
+            );
+            exit(0);
+        }
+        else if (!strcmp(argv[arg_i], "-r") || !strcmp(argv[arg_i], "--rom"))
+        {
+            strcpy(rom_path, argv[++arg_i]);
+            pre_load_state = true;
+        }
+        else if (!strcmp(argv[arg_i], "-a") || !strcmp(argv[arg_i], "--addr"))
+        {
+            rom_addr = atoi(argv[++arg_i]);
+        }
+        else if (!strcmp(argv[arg_i], "-s") || !strcmp(argv[arg_i], "--start"))
+        {
+            start_state = true;
+        }
+        else
+        {
+            fprintf(stderr, "Unrecognized argument %s\n", argv[arg_i]);
+            exit(1);
+        }
+    }
+}
+
+/**
  * @brief Main function
  * 
  * @param argc Number of arguments
@@ -429,16 +547,9 @@ void ExecuteEmulator(void)
  */
 int main(int argc, char **argv)
 {
-    if (argc < 2)
-    {
-        fprintf(stderr, "Usage: %s <rom> <addr, optional>\n", argv[0]);
-        exit(1);
-    }
-    rom_path = argv[1];
-    if (argc > 2) rom_addr = atoi(argv[2]);
+    ParseArgs(argc, argv);
 
     InitCippottoGui();
-    InitEmulator();
 
     while (!WindowShouldClose())
     {
