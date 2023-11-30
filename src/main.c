@@ -312,6 +312,8 @@ void ResetASMView(void)
 void UpdateROMView(void)
 {
     GuiGroupBox(gui_layout[LAYOUT_ROM], "Rom");
+    if (play_state || file_dialog.windowActive) GuiDisable();
+
     GuiDrawText("Rom path", gui_layout[LAYOUT_TROM], TEXT_ALIGN_LEFT,
                 text_color[GuiGetState()]);
 
@@ -338,14 +340,20 @@ void UpdateROMView(void)
         InitEmulator();
     }
 
-    // File dialog window
     GuiEnable();
+
+    // File dialog window
     GuiWindowFileDialog(&file_dialog);
-    if (file_dialog.windowActive) GuiDisable();
     if (file_dialog.SelectFilePressed)
-        strcpy(rom_path, TextFormat("%s" PATH_SEPERATOR "%s",
-                                    file_dialog.dirPathText,
-                                    file_dialog.fileNameText));
+    {
+        file_dialog.SelectFilePressed = false;
+        const char *file_path = TextFormat("%s" PATH_SEPERATOR "%s",
+                                           file_dialog.dirPathText,
+                                           file_dialog.fileNameText);
+        strcpy(rom_path, file_path);
+    }
+
+    if (file_dialog.windowActive) GuiDisable();
 }
 
 /**
