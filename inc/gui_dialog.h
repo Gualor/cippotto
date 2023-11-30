@@ -37,7 +37,7 @@
 *
 **********************************************************************************************/
 
-#include "raylib.h"
+#include <raylib.h>
 
 #ifndef __GUI_DIALOG_H__
 #define __GUI_DIALOG_H__
@@ -194,8 +194,6 @@ GuiWindowFileDialogState InitGuiWindowFileDialog(const char *initPath)
     strcpy(state.fileNameTextCopy, state.fileNameText);
 
     state.filterExt[0] = '\0';
-    //strcpy(state.filterExt, "all");
-
     state.dirFiles.count = 0;
 
     return state;
@@ -206,6 +204,7 @@ void GuiWindowFileDialog(GuiWindowFileDialogState *state)
 {
     if (state->windowActive)
     {
+        //----------------------------------------------------------------------------------------
         // Update window dragging
         //----------------------------------------------------------------------------------------
         if (state->supportDrag)
@@ -239,7 +238,6 @@ void GuiWindowFileDialog(GuiWindowFileDialogState *state)
             }
         }
         //----------------------------------------------------------------------------------------
-
         // Load dirFilesIcon and state->dirFiles lazily on windows open
         // NOTE: They are automatically unloaded at fileDialog closing
         //----------------------------------------------------------------------------------------
@@ -252,7 +250,6 @@ void GuiWindowFileDialog(GuiWindowFileDialogState *state)
         // Load current directory files
         if (state->dirFiles.paths == NULL) ReloadDirectoryFiles(state);
         //----------------------------------------------------------------------------------------
-
         // Draw window and controls
         //----------------------------------------------------------------------------------------
         state->windowActive = !GuiWindowBox(state->windowBounds, "#198# Select File Dialog");
@@ -302,7 +299,6 @@ void GuiWindowFileDialog(GuiWindowFileDialogState *state)
 
         // Check if a path has been selected, if it is a directory, move to that directory (and reload paths)
         if ((state->filesListActive >= 0) && (state->filesListActive != state->prevFilesListActive))
-            //&& (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) || IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_DPAD_A)))
         {
             strcpy(state->fileNameText, GetFileName(state->dirFiles.paths[state->filesListActive]));
 
@@ -326,6 +322,7 @@ void GuiWindowFileDialog(GuiWindowFileDialogState *state)
             state->prevFilesListActive = state->filesListActive;
         }
 
+        //--------------------------------------------------------------------------------------
         // Draw bottom controls
         //--------------------------------------------------------------------------------------
         GuiLabel((Rectangle){ state->windowBounds.x + 8, state->windowBounds.y + state->windowBounds.height - 68, 60, 24 }, "File name:");
@@ -357,7 +354,24 @@ void GuiWindowFileDialog(GuiWindowFileDialogState *state)
         }
 
         GuiLabel((Rectangle){ state->windowBounds.x + 8, state->windowBounds.y + state->windowBounds.height - 24 - 12, 68, 24 }, "File filter:");
-        GuiComboBox((Rectangle){ state->windowBounds.x + 72, state->windowBounds.y + state->windowBounds.height - 24 - 12, state->windowBounds.width - 184, 24 }, "All files", &state->fileTypeActive);
+        
+        int prevFileTypeActive = state->fileTypeActive;
+        GuiComboBox((Rectangle){ state->windowBounds.x + 72, state->windowBounds.y + state->windowBounds.height - 24 - 12, state->windowBounds.width - 184, 24 }, "All files;.ch8", &state->fileTypeActive);
+        if (prevFileTypeActive != state->fileTypeActive)
+        {
+            switch (state->fileTypeActive)
+            {
+            case 0:
+                state->filterExt[0] = '\0';
+                break;
+
+            case 1:
+                strcpy(state->filterExt, ".ch8");
+                break;
+            }
+
+            ReloadDirectoryFiles(state);
+        }
 
         state->SelectFilePressed = GuiButton((Rectangle){ state->windowBounds.x + state->windowBounds.width - 96 - 8, state->windowBounds.y + state->windowBounds.height - 68, 96, 24 }, "Select");
 
@@ -407,7 +421,7 @@ static void ReloadDirectoryFiles(GuiWindowFileDialogState *state)
 {
     UnloadDirectoryFiles(state->dirFiles);
 
-    state->dirFiles = LoadDirectoryFilesEx(state->dirPathText, (state->filterExt[0] == '\0')? NULL : state->filterExt, false);
+    state->dirFiles = LoadDirectoryFilesEx(state->dirPathText, (state->filterExt[0] == '\0') ? NULL : state->filterExt, false);
     state->itemFocused = 0;
 
     // Reset dirFilesIcon memory
@@ -434,6 +448,10 @@ static void ReloadDirectoryFiles(GuiWindowFileDialogState *state)
             else if (IsFileExtension(state->dirFiles.paths[i], ".exe;.bin;.raw;.msi"))
             {
                 strcpy(dirFilesIcon[i], TextFormat("#200#%s", GetFileName(state->dirFiles.paths[i])));
+            }
+            else if (IsFileExtension(state->dirFiles.paths[i], ".ch8"))
+            {
+                strcpy(dirFilesIcon[i], TextFormat("#206#%s", GetFileName(state->dirFiles.paths[i])));
             }
             else strcpy(dirFilesIcon[i], TextFormat("#218#%s", GetFileName(state->dirFiles.paths[i])));
         }
