@@ -510,16 +510,21 @@ void ExecuteEmulator(void)
  */
 void ParseArgs(int argc, char **argv)
 {
+    bool arg_rom = false;
+    bool arg_flag = false;
+
     int arg_i = 0;
     while (++arg_i < argc)
     {
         if (!strcmp(argv[arg_i], "-h") || !strcmp(argv[arg_i], "--help"))
-        {   
+        {
             printf(
                 "Usage: %s [options]\n"
                 "Options:\n"
-                "    -r, --rom <file>   Load Chip-8 ROM game into GUI.\n"
+                "    -h, --help         Print this message and exit.\n"
+                "    -r, --rom <file>   Specify Chip-8 ROM file path.\n"
                 "    -a, --addr <NNN>   Specify 12-bit ROM loading address.\n"
+                "                       If both -r and -a are specified the ROM is pre-loaded.\n"
                 "    -s, --start        Start game automatically upon loading.\n",
                 argv[0]
             );
@@ -527,11 +532,12 @@ void ParseArgs(int argc, char **argv)
         }
         else if (!strcmp(argv[arg_i], "-r") || !strcmp(argv[arg_i], "--rom"))
         {
+            arg_rom = true;
             strcpy(rom_path, argv[++arg_i]);
-            pre_load_state = true;
         }
         else if (!strcmp(argv[arg_i], "-a") || !strcmp(argv[arg_i], "--addr"))
         {
+            arg_flag = true;
             rom_addr = atoi(argv[++arg_i]);
         }
         else if (!strcmp(argv[arg_i], "-s") || !strcmp(argv[arg_i], "--start"))
@@ -544,6 +550,8 @@ void ParseArgs(int argc, char **argv)
             exit(1);
         }
     }
+
+    if (arg_rom && arg_flag) pre_load_state = true;
 }
 
 /**
