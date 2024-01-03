@@ -44,12 +44,13 @@ The built executable can then be found in the *bin/* folder:
 
 ## Screenshots
 
-<div style="display: grid; grid-template-columns: 48% 48%; justify-content: center;row-gap: 5%; column-gap: 2%;">
-    <img src="img/pong.png">
-    <img src="img/maze.png">
-    <img src="img/tetris.png">
-    <img src="img/bomb.png">
-</div>
+| [Pong](https://github.com/badlogic/chip8/blob/master/roms/pong2.rom) | [Maze](https://github.com/badlogic/chip8/blob/master/roms/maze.rom) |
+| :---: | :---: |
+| ![](img/pong.png) | ![](img/maze.png) |
+
+| [Tetris](https://github.com/badlogic/chip8/blob/master/roms/tetris.rom) | [Blitz](https://github.com/badlogic/chip8/blob/master/roms/blitz.rom) |
+| :---: | :---: |
+| ![](img/tetris.png) | ![](img/blitz.png) |
 
 ## Known limitations
 
