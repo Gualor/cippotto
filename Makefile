@@ -16,7 +16,7 @@ DEPS := $(patsubst %.o,%.d,$(OBJS))
 CFLAGS := $(INCS) -MMD -MP -Os -ffunction-sections -fdata-sections -Wl,--gc-sections \
           -Wall -Wextra -Wdouble-promotion -fno-strict-aliasing -fno-exceptions
 
-LDFLAGS := -lraylib
+LDFLAGS := -lm -lraylib
 ifeq ($(OS), Windows_NT)
     LDFLAGS += -lopengl32 -lgdi32 -lwinmm
 else ifeq ($(shell uname -s), Linux)
