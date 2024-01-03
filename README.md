@@ -2,7 +2,7 @@
 
 Chip-8 interpreter with real-time debugging and register editing capabilities.
 
-![Cippotto GUI](imgs/cippotto.gif)
+![Cippotto GUI](img/cippotto.gif)
 
 ## Usage
 
@@ -44,16 +44,16 @@ The built executable can then be found in the *bin/* folder:
 
 ## Screenshots
 
-<img src="imgs/pong.png" width=49%/>
-<img src="imgs/maze.png" width=49%/>
-<img src="imgs/tetris.png" width=49%/>
-<img src="imgs/bomb.png" width=49%/>
+<img src="img/pong.png" width=49%/>
+<img src="img/maze.png" width=49%/>
+<img src="img/tetris.png" width=49%/>
+<img src="img/bomb.png" width=49%/>
 
 ## Known limitations
 
 * **Quirks**: Only the following pure Chip-8 *quirks* are supported:
 
-    ![Cippotto GUI](imgs/quirks.png)
+    ![Cippotto GUI](img/quirks.png)
     \**Test roms can be found at the following [GitHub repository](https://github.com/Timendus/chip8-test-suite)*.
 
 * **Display wait**: Sprites are drawn on the screen without waiting for the vertical blank interrupt.
