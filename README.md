@@ -44,10 +44,12 @@ The built executable can then be found in the *bin/* folder:
 
 ## Screenshots
 
-<img src="img/pong.png" width=49%/>
-<img src="img/maze.png" width=49%/>
-<img src="img/tetris.png" width=49%/>
-<img src="img/bomb.png" width=49%/>
+<div style="display: grid; grid-template-columns: 48% 48%; justify-content: center;row-gap: 5%; column-gap: 2%;">
+    <img src="img/pong.png">
+    <img src="img/maze.png">
+    <img src="img/tetris.png">
+    <img src="img/bomb.png">
+</div>
 
 ## Known limitations
 
